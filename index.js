@@ -16,7 +16,7 @@ app.get('/api/health', (_, res) => {
 // Flodesk endpoint with better error handling
 app.post('/api/flodesk', async (req, res) => {
   try {
-    console.log('Received request:', { 
+    console.log('Received request to /api/flodesk:', { 
       action: req.body?.action,
       hasApiKey: !!req.body?.apiKey 
     });
@@ -35,11 +35,13 @@ app.post('/api/flodesk', async (req, res) => {
   }
 });
 
-// Handle 404
+// Catch-all for undefined routes
 app.use('*', (req, res) => {
+  console.log('404 for path:', req.originalUrl);
   res.status(404).json({ 
     success: false, 
-    message: 'Endpoint not found' 
+    message: 'Endpoint not found',
+    path: req.originalUrl
   });
 });
 

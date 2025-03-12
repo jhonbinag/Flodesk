@@ -5,7 +5,8 @@
     { "src": "public/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/index.js" },
+    { "src": "/api/flodesk", "dest": "/index.js" },
+    { "src": "/api/health", "dest": "/index.js" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ],
   "env": {
