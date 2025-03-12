@@ -1,7 +1,11 @@
 import express from 'express';
+import cors from 'cors';
 import { handleFlodeskAction } from './src/handlers/flodeskHandler.js';
 
 const app = express();
+
+// Simple CORS setup since everything is on the same domain
+app.use(cors());
 app.use(express.json());
 
 // Health check endpoint
