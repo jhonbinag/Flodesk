@@ -50,11 +50,26 @@
             border-radius: 4px;
             margin: 10px 0;
         }
+        .method-select {
+            margin-bottom: 15px;
+        }
+        .method-select label {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <h2>Flodesk API Test</h2>
     
+    <div class="method-select">
+        <label>
+            <input type="radio" name="method" value="GET" checked> GET
+        </label>
+        <label>
+            <input type="radio" name="method" value="POST"> POST
+        </label>
+    </div>
+
     <div class="form-group">
         <label for="action">Select Action:</label>
         <select id="action" onchange="updatePayloadFields()">
@@ -122,6 +137,7 @@
         }
 
         async function makeRequest() {
+            const method = document.querySelector('input[name="method"]:checked').value;
             const action = document.getElementById('action').value;
             const apiKey = document.getElementById('apiKey').value;
             
@@ -129,43 +145,64 @@
                 document.getElementById('result').innerHTML = '<div class="error">API Key is required</div>';
                 return;
             }
-            
-            let payload = {};
-            
-            switch(action) {
-                case 'createOrUpdateSubscriber':
-                    const email = document.getElementById('email')?.value;
-                    if (!email) {
-                        document.getElementById('result').innerHTML = '<div class="error">Email is required</div>';
-                        return;
-                    }
-                    payload = {
-                        email,
-                        firstName: document.getElementById('firstName')?.value,
-                        lastName: document.getElementById('lastName')?.value
-                    };
-                    break;
-                case 'getSubscriber':
-                    payload = {
-                        subscriberId: document.getElementById('subscriberId')?.value
-                    };
-                    break;
-            }
-            
+
             try {
-                const response = await fetch('/api/flodesk', {
-                    method: 'POST',
+                let url = '/api/flodesk';
+                let options = {
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
+                    }
+                };
+
+                if (method === 'GET') {
+                    // For GET requests, use the specific endpoints
+                    switch(action) {
+                        case 'getAllSegments':
+                            url = '/api/flodesk/segments';
+                            break;
+                        case 'getAllSubscribers':
+                            url = '/api/flodesk/subscribers';
+                            break;
+                        default:
+                            throw new Error('This action requires POST method');
+                    }
+                    options.method = 'GET';
+                    options.headers['x-api-key'] = apiKey;
+                } else {
+                    // For POST requests
+                    options.method = 'POST';
+                    let payload = {};
+                    
+                    switch(action) {
+                        case 'createOrUpdateSubscriber':
+                            const email = document.getElementById('email')?.value;
+                            if (!email) {
+                                document.getElementById('result').innerHTML = '<div class="error">Email is required</div>';
+                                return;
+                            }
+                            payload = {
+                                email,
+                                firstName: document.getElementById('firstName')?.value,
+                                lastName: document.getElementById('lastName')?.value
+                            };
+                            break;
+                        case 'getSubscriber':
+                            payload = {
+                                subscriberId: document.getElementById('subscriberId')?.value
+                            };
+                            break;
+                    }
+
+                    options.body = JSON.stringify({
                         action,
                         apiKey,
                         payload
-                    })
-                });
+                    });
+                }
                 
+                const response = await fetch(url, options);
                 const data = await response.json();
+                
                 if (data.success) {
                     document.getElementById('result').innerHTML = `<div class="success">Success!</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
                 } else {
