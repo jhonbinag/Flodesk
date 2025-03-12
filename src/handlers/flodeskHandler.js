@@ -5,8 +5,6 @@ export const handleFlodeskAction = async (req, res) => {
   try {
     const { action, apiKey, payload } = req.body;
     
-    console.log('Received request:', { action });  // Don't log API key
-    
     // Validate required fields
     if (!action || !apiKey) {
       return res.status(400).json({
@@ -15,23 +13,27 @@ export const handleFlodeskAction = async (req, res) => {
       });
     }
 
-    // Validate API key format
-    if (!/^[a-zA-Z0-9_-]+$/.test(apiKey)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid API key format'
-      });
-    }
-
     let result;
     
     try {
       switch (action) {
-        // Subscriber actions
+        case 'getAllSegments':
+          console.log('Getting all segments...');
+          result = await segmentsService.getAllSegments(apiKey, payload);
+          break;
+          
         case 'createOrUpdateSubscriber':
-          console.log('Creating/updating subscriber with data:', payload);
+          console.log('Creating/updating subscriber...');
+          if (!payload?.email) {
+            return res.status(400).json({
+              success: false,
+              message: 'Email is required for subscriber creation/update'
+            });
+          }
           result = await subscribersService.createOrUpdate(apiKey, payload);
           break;
+          
+        // Subscriber actions
         case 'getAllSubscribers':
           result = await subscribersService.getAllSubscribers(apiKey, payload);
           break;
@@ -57,9 +59,6 @@ export const handleFlodeskAction = async (req, res) => {
           break;
 
         // Segment actions
-        case 'getAllSegments':
-          result = await segmentsService.getAllSegments(apiKey, payload);
-          break;
         case 'getSegment':
           result = await segmentsService.getSegment(apiKey, payload.segmentId);
           break;
@@ -67,7 +66,7 @@ export const handleFlodeskAction = async (req, res) => {
         default:
           return res.status(400).json({ 
             success: false, 
-            message: 'Invalid action specified' 
+            message: `Invalid action specified: ${action}` 
           });
       }
 
@@ -75,19 +74,19 @@ export const handleFlodeskAction = async (req, res) => {
         success: true,
         data: result.data
       });
+
     } catch (apiError) {
-      // Handle Flodesk API specific errors
       if (apiError.response?.status === 401) {
         return res.status(401).json({
           success: false,
           message: 'Invalid Flodesk API key'
         });
       }
-      throw apiError;  // Re-throw other errors
+      throw apiError;
     }
 
   } catch (error) {
-    console.error('Flodesk API Error:', {
+    console.error('Request Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data
@@ -96,7 +95,7 @@ export const handleFlodeskAction = async (req, res) => {
     return res.status(error.response?.status || 500).json({
       success: false,
       message: error.response?.data?.message || error.message,
-      error: error.response?.data || 'An error occurred while processing your request'
+      error: error.response?.data || 'An error occurred'
     });
   }
 }; 

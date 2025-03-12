@@ -4,18 +4,23 @@ import { handleFlodeskAction } from './src/handlers/flodeskHandler.js';
 
 const app = express();
 
-// Simple CORS setup since everything is on the same domain
+// CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
 
 // Health check endpoint
-app.get('/health', (_, res) => {
+app.get('/api/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Flodesk endpoint
+// Flodesk endpoint with better error handling
 app.post('/api/flodesk', async (req, res) => {
   try {
+    console.log('Received request:', { 
+      action: req.body?.action,
+      hasApiKey: !!req.body?.apiKey 
+    });
+    
     await handleFlodeskAction(req, res);
   } catch (error) {
     console.error('Server Error:', {
@@ -28,6 +33,14 @@ app.post('/api/flodesk', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Handle 404
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: 'Endpoint not found' 
+  });
 });
 
 // Global error handler
