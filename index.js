@@ -16,7 +16,7 @@ apiRouter.get('/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Flodesk endpoints
+// GET endpoints
 apiRouter.get('/flodesk/segments', async (req, res) => {
   try {
     const apiKey = req.headers['x-api-key'];
@@ -28,17 +28,13 @@ apiRouter.get('/flodesk/segments', async (req, res) => {
     }
 
     console.log('GET request to /api/flodesk/segments');
-    
     await handleFlodeskAction(req, res, {
       action: 'getAllSegments',
       apiKey,
       payload: {}
     });
   } catch (error) {
-    console.error('Server Error:', {
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Server Error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -47,46 +43,13 @@ apiRouter.get('/flodesk/segments', async (req, res) => {
   }
 });
 
-apiRouter.get('/flodesk/subscribers', async (req, res) => {
-  try {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey) {
-      return res.status(401).json({
-        success: false,
-        message: 'API Key is required in x-api-key header'
-      });
-    }
-
-    console.log('GET request to /api/flodesk/subscribers');
-    
-    await handleFlodeskAction(req, res, {
-      action: 'getAllSubscribers',
-      apiKey,
-      payload: {}
-    });
-  } catch (error) {
-    console.error('Server Error:', {
-      message: error.message,
-      stack: error.stack
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
-  }
-});
-
-// Keep the POST endpoint for backward compatibility
+// POST endpoint
 apiRouter.post('/flodesk', async (req, res) => {
   try {
     console.log('POST request to /api/flodesk');
     await handleFlodeskAction(req, res);
   } catch (error) {
-    console.error('Server Error:', {
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Server Error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -95,7 +58,7 @@ apiRouter.post('/flodesk', async (req, res) => {
   }
 });
 
-// Mount API routes
+// Mount API routes at /api
 app.use('/api', apiRouter);
 
 // Catch-all for undefined routes
