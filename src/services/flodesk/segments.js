@@ -1,5 +1,5 @@
-import { ENDPOINTS } from '../../config/constants';
-import { createFlodeskClient } from '../../utils/apiClient';
+import { ENDPOINTS } from '../../config/constants.js';
+import { createFlodeskClient } from '../../utils/apiClient.js';
 
 export const segmentsService = {
   async getAllSegments(apiKey, params = {}) {

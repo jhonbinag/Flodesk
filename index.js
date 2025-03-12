@@ -5,11 +5,11 @@ const app = express();
 app.use(express.json());
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Flodesk endpoint with error handling
+// Flodesk endpoint
 app.post('/api/flodesk', async (req, res) => {
   try {
     await handleFlodeskAction(req, res);
@@ -36,9 +36,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
+// For Vercel
 export default app;
