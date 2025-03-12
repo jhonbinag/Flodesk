@@ -1,9 +1,9 @@
 import { subscribersService } from '../services/flodesk/subscribers.js';
 import { segmentsService } from '../services/flodesk/segments.js';
 
-export const handleFlodeskAction = async (req, res) => {
+export const handleFlodeskAction = async (req, res, customBody = null) => {
   try {
-    const { action, apiKey, payload } = req.body;
+    const { action, apiKey, payload } = customBody || req.body;
     
     // Validate required fields
     if (!action || !apiKey) {

@@ -8,22 +8,79 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
-app.get('/api/health', (_, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
 // Create router for API routes
 const apiRouter = express.Router();
 
-// Flodesk endpoint
+// Health check endpoint
+apiRouter.get('/health', (_, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Flodesk endpoints
+apiRouter.get('/flodesk/segments', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        message: 'API Key is required in x-api-key header'
+      });
+    }
+
+    console.log('GET request to /api/flodesk/segments');
+    
+    await handleFlodeskAction(req, res, {
+      action: 'getAllSegments',
+      apiKey,
+      payload: {}
+    });
+  } catch (error) {
+    console.error('Server Error:', {
+      message: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+apiRouter.get('/flodesk/subscribers', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        message: 'API Key is required in x-api-key header'
+      });
+    }
+
+    console.log('GET request to /api/flodesk/subscribers');
+    
+    await handleFlodeskAction(req, res, {
+      action: 'getAllSubscribers',
+      apiKey,
+      payload: {}
+    });
+  } catch (error) {
+    console.error('Server Error:', {
+      message: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Keep the POST endpoint for backward compatibility
 apiRouter.post('/flodesk', async (req, res) => {
   try {
-    console.log('Received request to /api/flodesk:', { 
-      action: req.body?.action,
-      hasApiKey: !!req.body?.apiKey 
-    });
-    
+    console.log('POST request to /api/flodesk');
     await handleFlodeskAction(req, res);
   } catch (error) {
     console.error('Server Error:', {
