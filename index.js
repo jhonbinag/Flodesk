@@ -19,15 +19,14 @@ apiRouter.get('/health', (_, res) => {
 // GET endpoints
 apiRouter.get('/flodesk/segments', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
+    const apiKey = req.headers.authorization;
+    if (!apiKey) {
       return res.status(401).json({
         success: false,
-        message: 'Basic Authorization header is required'
+        message: 'Authorization header is required'
       });
     }
 
-    const apiKey = authHeader.split(' ')[1];
     console.log('GET request to /api/flodesk/segments');
     
     await handleFlodeskAction(req, res, {
