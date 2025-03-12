@@ -1,5 +1,5 @@
-import { subscribersService } from '../services/flodesk/subscribers';
-import { segmentsService } from '../services/flodesk/segments';
+import { subscribersService } from '../services/flodesk/subscribers.js';
+import { segmentsService } from '../services/flodesk/segments.js';
 
 export const handleFlodeskAction = async (req, res) => {
   try {
