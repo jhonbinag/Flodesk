@@ -17,7 +17,7 @@ apiRouter.get('/health', (_, res) => {
 });
 
 // GET endpoints
-apiRouter.get('/flodesk/segments', async (req, res) => {
+apiRouter.get('/flodesk/subscribers', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
     if (!apiKey) {
