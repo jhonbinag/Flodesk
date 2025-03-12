@@ -13,8 +13,11 @@ app.get('/api/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Flodesk endpoint with better error handling
-app.post('/api/flodesk', async (req, res) => {
+// Create router for API routes
+const apiRouter = express.Router();
+
+// Flodesk endpoint
+apiRouter.post('/flodesk', async (req, res) => {
   try {
     console.log('Received request to /api/flodesk:', { 
       action: req.body?.action,
@@ -34,6 +37,9 @@ app.post('/api/flodesk', async (req, res) => {
     });
   }
 });
+
+// Mount API routes
+app.use('/api', apiRouter);
 
 // Catch-all for undefined routes
 app.use('*', (req, res) => {
