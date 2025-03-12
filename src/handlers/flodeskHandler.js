@@ -5,6 +5,8 @@ export const handleFlodeskAction = async (req, res) => {
   try {
     const { action, apiKey, payload } = req.body;
     
+    console.log('Received request:', { action, payload });
+    
     // Validate required fields
     if (!action || !apiKey) {
       return res.status(400).json({
@@ -18,6 +20,7 @@ export const handleFlodeskAction = async (req, res) => {
     switch (action) {
       // Subscriber actions
       case 'createOrUpdateSubscriber':
+        console.log('Creating/updating subscriber with data:', payload);
         result = await subscribersService.createOrUpdate(apiKey, payload);
         break;
       case 'getAllSubscribers':
@@ -65,10 +68,15 @@ export const handleFlodeskAction = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Flodesk API Error:', error);
+    console.error('Flodesk API Error:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
     return res.status(500).json({
       success: false,
-      message: error.message || 'An error occurred while processing your request'
+      message: error.message || 'An error occurred while processing your request',
+      details: error.response?.data
     });
   }
 }; 
