@@ -12,25 +12,48 @@ export const subscribersService = {
     return client.get(ENDPOINTS.subscribers.base, { params });
   },
 
-  async getSubscriber(apiKey, subscriberId) {
+  async getSubscriber(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    return client.get(`${ENDPOINTS.subscribers.base}/${subscriberId}`);
+    // First get all subscribers and filter by email
+    const response = await client.get(ENDPOINTS.subscribers.base, {
+      params: { email }
+    });
+    
+    const subscribers = response.data.subscribers || [];
+    const subscriber = subscribers.find(sub => sub.email === email);
+    
+    if (!subscriber) {
+      throw {
+        response: {
+          status: 404,
+          data: {
+            message: `Subscriber with email ${email} not found`,
+            code: 'not_found'
+          }
+        }
+      };
+    }
+    
+    return { data: subscriber };
   },
 
-  async removeFromSegment(apiKey, subscriberId, segmentId) {
+  async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
-    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriberId}/segments/${segmentId}`);
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments/${segmentId}`);
   },
 
-  async addToSegments(apiKey, subscriberId, segmentIds) {
+  async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriberId}/segments`, {
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments`, {
       segment_ids: segmentIds
     });
   },
 
-  async unsubscribeFromAll(apiKey, subscriberId) {
+  async unsubscribeFromAll(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriberId}/unsubscribe`);
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/unsubscribe`);
   }
 }; 

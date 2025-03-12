@@ -38,7 +38,14 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           result = await subscribersService.getAllSubscribers(apiKey, payload);
           break;
         case 'getSubscriber':
-          result = await subscribersService.getSubscriber(apiKey, payload.subscriberId);
+          console.log('Getting subscriber by email...');
+          if (!payload?.email) {
+            return res.status(400).json({
+              success: false,
+              message: 'Email is required to get subscriber'
+            });
+          }
+          result = await subscribersService.getSubscriber(apiKey, payload.email);
           break;
         case 'removeFromSegment':
           result = await subscribersService.removeFromSegment(
