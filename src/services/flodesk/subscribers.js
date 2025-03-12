@@ -14,13 +14,15 @@ export const subscribersService = {
 
   async getSubscriber(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    // First get all subscribers and filter by email
-    const response = await client.get(ENDPOINTS.subscribers.base, {
-      params: { email }
-    });
     
+    // Get all subscribers
+    const response = await client.get(ENDPOINTS.subscribers.base);
+    
+    // Find subscriber by email (case insensitive)
     const subscribers = response.data.subscribers || [];
-    const subscriber = subscribers.find(sub => sub.email === email);
+    const subscriber = subscribers.find(sub => 
+      sub.email.toLowerCase() === email.toLowerCase()
+    );
     
     if (!subscriber) {
       throw {
