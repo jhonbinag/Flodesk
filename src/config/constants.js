@@ -5,6 +5,7 @@ export const ENDPOINTS = {
     base: '/subscribers',
     segments: '/segments',
     unsubscribe: '/unsubscribe',
+    search: '/subscribers/search'
   },
   segments: {
     base: '/segments',

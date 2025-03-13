@@ -45,7 +45,22 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
               message: 'Email is required to get subscriber'
             });
           }
-          result = await subscribersService.getSubscriber(apiKey, payload.email);
+          try {
+            result = await subscribersService.getSubscriber(apiKey, payload.email);
+            return res.json({
+              success: true,
+              data: result.data // This will contain the raw Flodesk subscriber data
+            });
+          } catch (error) {
+            if (error.response?.status === 404) {
+              return res.status(404).json({
+                success: false,
+                message: error.response.data.message,
+                error: error.response.data
+              });
+            }
+            throw error;
+          }
           break;
         case 'removeFromSegment':
           result = await subscribersService.removeFromSegment(

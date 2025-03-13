@@ -15,36 +15,42 @@ export const subscribersService = {
   async getSubscriber(apiKey, email) {
     const client = createFlodeskClient(apiKey);
     
-    // Get all subscribers
-    const response = await client.get(ENDPOINTS.subscribers.base);
-    
-    // Debug log to see API response structure
-    console.log('Flodesk API Response:', {
-      hasData: !!response.data,
-      dataKeys: Object.keys(response.data),
-      subscribersCount: response.data.subscribers?.length,
-      firstSubscriber: response.data.subscribers?.[0]
-    });
-    
-    // Find subscriber by email (case insensitive)
-    const subscribers = response.data.subscribers || [];
-    const subscriber = subscribers.find(sub => 
-      sub.email.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!subscriber) {
-      throw {
-        response: {
-          status: 404,
-          data: {
-            message: `Subscriber with email ${email} not found`,
-            code: 'not_found'
-          }
+    try {
+      // Get subscriber directly by email
+      const response = await client.get(`${ENDPOINTS.subscribers.base}/search`, {
+        params: {
+          email: email
         }
-      };
+      });
+
+      // If no data or no subscriber found
+      if (!response.data || !response.data.subscriber) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found`,
+              code: 'not_found'
+            }
+          }
+        };
+      }
+
+      return response; // Return the raw Flodesk response
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found`,
+              code: 'not_found'
+            }
+          }
+        };
+      }
+      throw error;
     }
-    
-    return { data: subscriber };
   },
 
   async removeFromSegment(apiKey, email, segmentId) {
