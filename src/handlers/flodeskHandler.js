@@ -26,8 +26,9 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
             });
           } catch (error) {
             console.error('Error in getAllSegments:', error);
-            return res.json({
-              options: []
+            return res.status(error.response?.status || 500).json({
+              options: [],
+              error: error.message
             });
           }
           break;
