@@ -18,7 +18,8 @@ apiRouter.get('/health', (_, res) => {
 
 // Subscriber Endpoints
 // 1. Get All Subscribers
-apiRouter.get('/flodesk/subscribers', async (req, res) => {
+// GET https://flodeskendpoints.vercel.app/api/subscribers
+apiRouter.get('/subscribers', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
     if (!apiKey) {
@@ -44,7 +45,8 @@ apiRouter.get('/flodesk/subscribers', async (req, res) => {
 });
 
 // 2. Get Specific Subscriber
-apiRouter.get('/flodesk/subscribers/:email', async (req, res) => {
+// GET https://flodeskendpoints.vercel.app/api/subscribers/{email}
+apiRouter.get('/subscribers/:email', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
     const email = decodeURIComponent(req.params.email);
@@ -64,10 +66,106 @@ apiRouter.get('/flodesk/subscribers/:email', async (req, res) => {
   }
 });
 
-// 3. POST endpoint for other actions
-apiRouter.post('/flodesk', async (req, res) => {
+// 3. Create/Update Subscriber
+// POST https://flodeskendpoints.vercel.app/api/subscribers
+apiRouter.post('/subscribers', async (req, res) => {
   try {
-    await handleFlodeskAction(req, res);
+    const apiKey = req.headers.authorization;
+    await handleFlodeskAction(req, res, {
+      action: 'createOrUpdateSubscriber',
+      apiKey,
+      payload: req.body
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// 4. Add to Segments
+// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+apiRouter.post('/subscribers/:email/segments', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    const email = decodeURIComponent(req.params.email);
+    await handleFlodeskAction(req, res, {
+      action: 'addToSegments',
+      apiKey,
+      payload: { 
+        email,
+        segmentIds: req.body.segmentIds
+      }
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// 5. Remove from Segment
+// DELETE https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments/{segmentId}
+apiRouter.delete('/subscribers/:email/segments/:segmentId', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    const email = decodeURIComponent(req.params.email);
+    const segmentId = req.params.segmentId;
+    
+    await handleFlodeskAction(req, res, {
+      action: 'removeFromSegment',
+      apiKey,
+      payload: { email, segmentId }
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// 6. Unsubscribe from All
+// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/unsubscribe
+apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    const email = decodeURIComponent(req.params.email);
+    
+    await handleFlodeskAction(req, res, {
+      action: 'unsubscribeFromAll',
+      apiKey,
+      payload: { email }
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Segment Endpoints
+// 1. Get All Segments
+// GET https://flodeskendpoints.vercel.app/api/segments
+apiRouter.get('/segments', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    await handleFlodeskAction(req, res, {
+      action: 'getAllSegments',
+      apiKey,
+      payload: {}
+    });
   } catch (error) {
     console.error('Server Error:', error);
     res.status(500).json({
