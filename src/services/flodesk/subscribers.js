@@ -6,8 +6,17 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     try {
       const response = await client.get(ENDPOINTS.subscribers.base);
+      
+      // Transform the subscribers array into options format
+      const options = response.data.subscribers.map(subscriber => ({
+        value: subscriber.id,
+        label: subscriber.email
+      }));
+
       return {
-        data: response.data
+        data: {
+          options
+        }
       };
     } catch (error) {
       console.error('Error getting subscribers:', error);
