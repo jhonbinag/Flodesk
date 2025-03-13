@@ -133,10 +133,10 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Make sure segment_ids is an array
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
-      // Send DELETE request with segment_ids in the body
+      console.log('Removing segments:', { email, segmentIds: segmentIdsArray });
+      
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
           segment_ids: segmentIdsArray
@@ -146,7 +146,7 @@ export const subscribersService = {
       console.log('Remove segment response:', response.data);
       return response;
     } catch (error) {
-      console.error('Error removing segments:', error);
+      console.error('Error removing segments:', error.response || error);
       throw error;
     }
   },
