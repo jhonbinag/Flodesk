@@ -5,15 +5,12 @@ export const segmentsService = {
   async getAllSegments(apiKey) {
     const client = createFlodeskClient(apiKey);
     try {
+      // Get all segments first
       const response = await client.get(ENDPOINTS.segments.base);
-      
-      // Debug log to see raw response
       console.log('Raw Segments Response:', JSON.stringify(response.data, null, 2));
 
-      // Get segments array from response
+      // Get segments array
       let segments = [];
-      
-      // Try to get segments from various possible response structures
       if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
         segments = response.data.data.data;
       } else if (response.data?.data && Array.isArray(response.data.data)) {
@@ -24,52 +21,44 @@ export const segmentsService = {
         segments = response.data.segments;
       }
 
-      // Transform segments and fetch subscribers for each
-      const segmentsWithSubscribers = await Promise.all(
-        segments
-          .filter(segment => segment.id && segment.name)
-          .map(async segment => {
-            try {
-              // Get subscribers for this segment
-              const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segment.id}/subscribers`);
-              console.log(`Subscribers Response for ${segment.id}:`, JSON.stringify(subscribersResponse.data, null, 2));
+      // Get all subscribers
+      const subscribersResponse = await client.get(ENDPOINTS.subscribers.base);
+      console.log('All Subscribers Response:', JSON.stringify(subscribersResponse.data, null, 2));
 
-              // Extract subscribers from response
-              let subscribersList = [];
-              if (subscribersResponse.data?.data?.subscribers) {
-                subscribersList = subscribersResponse.data.data.subscribers;
-              } else if (subscribersResponse.data?.subscribers) {
-                subscribersList = subscribersResponse.data.subscribers;
-              } else if (subscribersResponse.data?.data) {
-                subscribersList = subscribersResponse.data.data;
-              } else if (Array.isArray(subscribersResponse.data)) {
-                subscribersList = subscribersResponse.data;
-              }
+      // Get subscribers array
+      let allSubscribers = [];
+      if (subscribersResponse.data?.data?.data) {
+        allSubscribers = subscribersResponse.data.data.data;
+      } else if (subscribersResponse.data?.data) {
+        allSubscribers = subscribersResponse.data.data;
+      } else if (Array.isArray(subscribersResponse.data)) {
+        allSubscribers = subscribersResponse.data;
+      }
 
-              // Map subscribers to value-label format
-              const subscribers = subscribersList.map(sub => ({
-                value: sub.id || sub._id || '',
-                label: sub.email || ''
-              }));
+      // Transform segments and match subscribers
+      const segmentsWithSubscribers = segments
+        .filter(segment => segment.id && segment.name)
+        .map(segment => {
+          // Find subscribers that belong to this segment
+          const segmentSubscribers = allSubscribers
+            .filter(sub => {
+              // Check if subscriber has this segment
+              return (sub.segments || []).some(subSegment => 
+                subSegment.id === segment.id || 
+                subSegment === segment.id
+              );
+            })
+            .map(sub => ({
+              value: sub.id || sub._id || '',
+              label: sub.email || ''
+            }));
 
-              console.log(`Processed subscribers for segment ${segment.id}:`, subscribers);
-
-              return {
-                value: segment.id,
-                label: segment.name,
-                subscribers
-              };
-            } catch (error) {
-              console.error(`Error fetching subscribers for segment ${segment.id}:`, error.response?.data || error.message);
-              // Continue with empty subscribers array on error
-              return {
-                value: segment.id,
-                label: segment.name,
-                subscribers: []
-              };
-            }
-          })
-      );
+          return {
+            value: segment.id,
+            label: segment.name,
+            subscribers: segmentSubscribers
+          };
+        });
 
       console.log('Final segments with subscribers:', JSON.stringify(segmentsWithSubscribers, null, 2));
       return segmentsWithSubscribers;
