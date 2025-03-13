@@ -2,15 +2,12 @@ import { ENDPOINTS } from '../../config/constants.js';
 import { createFlodeskClient } from '../../utils/apiClient.js';
 
 export const subscribersService = {
-  async getAllSubscribers(apiKey, params = {}) {
+  async getAllSubscribers(apiKey) {
     const client = createFlodeskClient(apiKey);
     try {
-      const response = await client.get(ENDPOINTS.subscribers.base, { params });
-      // Ensure we have a consistent response format
+      const response = await client.get(ENDPOINTS.subscribers.base);
       return {
-        data: {
-          subscribers: response.data?.subscribers || []
-        }
+        data: response.data
       };
     } catch (error) {
       console.error('Error getting subscribers:', error);
@@ -19,32 +16,12 @@ export const subscribersService = {
   },
 
   async getSubscriber(apiKey, email) {
+    const client = createFlodeskClient(apiKey);
     try {
-      // Get all subscribers
-      const response = await this.getAllSubscribers(apiKey);
-      
-      // Find the subscriber with matching email
-      const subscribers = response.data?.subscribers || [];
-      const subscriber = subscribers.find(sub => 
-        sub.email.toLowerCase() === email.toLowerCase()
-      );
-
-      if (!subscriber) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
-
+      // Use the direct endpoint to get subscriber by email
+      const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
       return {
-        data: {
-          subscriber: subscriber
-        }
+        data: response.data
       };
     } catch (error) {
       console.error('Error getting subscriber:', error);
