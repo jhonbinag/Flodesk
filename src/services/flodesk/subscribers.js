@@ -18,6 +18,14 @@ export const subscribersService = {
     // Get all subscribers
     const response = await client.get(ENDPOINTS.subscribers.base);
     
+    // Debug log to see API response structure
+    console.log('Flodesk API Response:', {
+      hasData: !!response.data,
+      dataKeys: Object.keys(response.data),
+      subscribersCount: response.data.subscribers?.length,
+      firstSubscriber: response.data.subscribers?.[0]
+    });
+    
     // Find subscriber by email (case insensitive)
     const subscribers = response.data.subscribers || [];
     const subscriber = subscribers.find(sub => 
