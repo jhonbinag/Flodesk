@@ -42,16 +42,28 @@ export const segmentsService = {
   async getSegment(apiKey, segmentId) {
     const client = createFlodeskClient(apiKey);
     try {
+      // Get segment details
       const response = await client.get(`${ENDPOINTS.segments.base}/${segmentId}`);
-      
       console.log('Raw Segment Response:', response.data);
-
       const segment = response.data;
 
-      // Return just the value-label pair
+      // Get subscribers in this segment
+      const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segmentId}/subscribers`);
+      console.log('Segment Subscribers Response:', subscribersResponse.data);
+
+      // Transform subscribers into value-label pairs
+      const subscribers = (subscribersResponse.data?.subscribers || []).map(sub => ({
+        value: sub.id || '',
+        label: sub.email || ''
+      }));
+
+      // Return segment with its subscribers
       return {
         value: segment.id || '',
-        label: segment.name || ''
+        label: segment.name || '',
+        subscribers: {
+          options: subscribers // Using same format as other endpoints
+        }
       };
     } catch (error) {
       console.error('Error getting segment:', {
