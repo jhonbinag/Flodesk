@@ -133,11 +133,26 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
+      // Handle both single ID and array of IDs
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
+      // Validate segment IDs format
+      const isValidSegmentId = id => /^[0-9a-fA-F]{24}$/.test(id);
+      if (!segmentIdsArray.every(isValidSegmentId)) {
+        throw {
+          response: {
+            status: 400,
+            data: {
+              message: "Invalid segment ID format",
+              code: "validation_error"
+            }
+          }
+        };
+      }
+
       // DELETE request with body
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {  // axios requires 'data' property for DELETE request body
+        data: {
           segment_ids: segmentIdsArray
         }
       });
