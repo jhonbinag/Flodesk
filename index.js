@@ -174,12 +174,17 @@ apiRouter.get('/segments', async (req, res) => {
     
     // Check if we have an id query parameter
     if (req.query.id) {
+      // Handle both encoded and unencoded emails
+      const email = req.query.id.includes('%40') ? 
+        req.query.id : // Already encoded
+        encodeURIComponent(req.query.id); // Need to encode
+
       // If we have an id (email), get segments for that subscriber
       await handleFlodeskAction(req, res, {
         action: 'getSegment',
         apiKey,
         payload: { 
-          id: decodeURIComponent(req.query.id)
+          id: decodeURIComponent(email) // Always decode before processing
         }
       });
     } else {
@@ -193,8 +198,7 @@ apiRouter.get('/segments', async (req, res) => {
   } catch (error) {
     console.error('Server Error:', error);
     res.status(500).json({
-      success: false,
-      message: 'Internal server error',
+      options: [], // Return empty options on error for GoHighLevel
       error: error.message
     });
   }
