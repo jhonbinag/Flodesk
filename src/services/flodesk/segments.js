@@ -48,16 +48,10 @@ export const segmentsService = {
 
       const segment = response.data;
 
+      // Return just the value-label pair
       return {
-        success: true,
-        id: segment.id || '',
-        name: segment.name || '',
-        total_active_subscribers: segment.total_active_subscribers || 0,
-        created_at: segment.created_at || null,
-        options: [{
-          value: segment.id || '',
-          label: segment.name || ''
-        }]
+        value: segment.id || '',
+        label: segment.name || ''
       };
     } catch (error) {
       console.error('Error getting segment:', {
