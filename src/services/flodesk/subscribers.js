@@ -18,17 +18,18 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Get all subscribers and filter by email
-      const response = await client.get(ENDPOINTS.subscribers.base, {
-        params: { email: email }
+      // Use the search endpoint to find subscriber by email
+      const response = await client.get(`${ENDPOINTS.subscribers.base}`, {
+        params: {
+          email: email,
+          limit: 1 // Only get one result
+        }
       });
 
-      const subscribers = response.data.subscribers || [];
-      const subscriber = subscribers.find(sub => 
-        sub.email.toLowerCase() === email.toLowerCase()
-      );
+      console.log('Search response:', response.data);
 
-      if (!subscriber) {
+      // Check if we got any results
+      if (!response.data?.subscribers?.length) {
         throw {
           response: {
             status: 404,
@@ -40,14 +41,33 @@ export const subscribersService = {
         };
       }
 
-      return { data: subscriber };
+      // Return the first (and should be only) matching subscriber
+      return { 
+        data: response.data.subscribers[0]
+      };
     } catch (error) {
       console.error('Flodesk API Error:', {
         status: error.response?.status,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
+        endpoint: `${ENDPOINTS.subscribers.base}?email=${email}`
       });
-      throw error;
+
+      // If it's already our custom 404 error, throw it as is
+      if (error.response?.status === 404) {
+        throw error;
+      }
+
+      // For other errors, throw a generic error
+      throw {
+        response: {
+          status: error.response?.status || 500,
+          data: {
+            message: error.response?.data?.message || 'Failed to get subscriber',
+            code: error.response?.data?.code || 'error'
+          }
+        }
+      };
     }
   },
 
