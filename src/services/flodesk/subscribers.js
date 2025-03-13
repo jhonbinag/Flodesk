@@ -130,11 +130,44 @@ export const subscribersService = {
     return client.post(ENDPOINTS.subscribers.base, subscriberData);
   },
 
-  async removeFromSegment(apiKey, email, segmentId) {
+  async removeFromSegment(apiKey, email, segmentIdOrName) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Use email directly in the URL as Flodesk API supports both id and email
-      return client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments/${segmentId}`);
+      // First check if we got a name instead of ID
+      if (!segmentIdOrName.match(/^[0-9a-fA-F]{24}$/)) {
+        // Get all segments to find the ID
+        const segmentsResponse = await client.get(ENDPOINTS.segments.base);
+        let allSegments = [];
+        if (segmentsResponse.data?.data?.data) {
+          allSegments = segmentsResponse.data.data.data;
+        } else if (segmentsResponse.data?.data) {
+          allSegments = segmentsResponse.data.data;
+        } else if (Array.isArray(segmentsResponse.data)) {
+          allSegments = segmentsResponse.data;
+        }
+
+        // Find segment by name
+        const segment = allSegments.find(s => 
+          s.name.toLowerCase() === segmentIdOrName.toLowerCase()
+        );
+
+        if (!segment) {
+          throw {
+            response: {
+              status: 404,
+              data: {
+                message: `Segment with name "${segmentIdOrName}" not found`,
+                code: 'not_found'
+              }
+            }
+          };
+        }
+
+        segmentIdOrName = segment.id; // Use the found ID
+      }
+
+      // Remove from segment using ID
+      return client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments/${segmentIdOrName}`);
     } catch (error) {
       console.error('Error removing from segment:', error);
       if (error.response?.status === 404) {
@@ -142,7 +175,7 @@ export const subscribersService = {
           response: {
             status: 404,
             data: {
-              message: `Subscriber with email ${email} not found or segment ${segmentId} not found`,
+              message: `Subscriber with email ${email} not found or segment ${segmentIdOrName} not found`,
               code: 'not_found'
             }
           }
