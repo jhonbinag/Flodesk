@@ -1,5 +1,6 @@
 import { ENDPOINTS } from '../../config/constants.js';
 import { createFlodeskClient } from '../../utils/apiClient.js';
+import { segmentsService } from './segments.js';
 
 export const subscribersService = {
   async getAllSubscribers(apiKey) {
@@ -53,8 +54,8 @@ export const subscribersService = {
 
       const subscriber = response.data;
 
-      // Transform segments into value-label pairs
-      const segments = (subscriber.segments || []).map(segment => ({
+      // Transform segments directly from subscriber data
+      const subscriberSegments = (subscriber.segments || []).map(segment => ({
         value: segment.id || '',
         label: segment.name || ''
       }));
@@ -67,7 +68,7 @@ export const subscribersService = {
           email: subscriber.email || '',
           first_name: subscriber.first_name || '',
           last_name: subscriber.last_name || '',
-          options: segments // For dropdown
+          options: subscriberSegments
         };
       }
 
@@ -80,7 +81,7 @@ export const subscribersService = {
         source: subscriber.source || 'manual',
         first_name: subscriber.first_name || '',
         last_name: subscriber.last_name || '',
-        segments,
+        segments: subscriberSegments,
         custom_fields: subscriber.custom_fields || {},
         optin_ip: subscriber.optin_ip || '',
         optin_timestamp: subscriber.optin_timestamp || null,
