@@ -133,57 +133,18 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Validate email
-      if (!email) {
-        throw {
-          response: {
-            status: 400,
-            data: {
-              message: "Email is required",
-              code: "validation_error"
-            }
-          }
-        };
-      }
-
-      // Validate segment_ids
-      if (!segment_ids || (Array.isArray(segment_ids) && segment_ids.length === 0)) {
-        throw {
-          response: {
-            status: 400,
-            data: {
-              message: "segment_ids array is required and cannot be empty",
-              code: "validation_error"
-            }
-          }
-        };
-      }
-
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
-      console.log('Removing segments:', { 
-        email: email, 
-        segmentIds: segmentIdsArray,
-        url: `${ENDPOINTS.subscribers.base}/${email}/segments`
-      });
-      
+      // DELETE request with body
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {
+        data: {  // axios requires 'data' property for DELETE request body
           segment_ids: segmentIdsArray
         }
       });
 
-      console.log('Remove segment response:', response.data);
       return response;
     } catch (error) {
-      console.error('Error removing segments:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-        method: error.config?.method,
-        email: email,
-        segment_ids: segment_ids
-      });
+      console.error('Error removing segments:', error);
       throw error;
     }
   },
