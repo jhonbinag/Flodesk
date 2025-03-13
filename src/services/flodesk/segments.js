@@ -102,11 +102,7 @@ export const segmentsService = {
 
           return {
             value: matchingSegment.id,
-            label: matchingSegment.name,
-            options: [{
-              value: subscriber.id || '',
-              label: subscriber.email || ''
-            }]
+            label: matchingSegment.name
           };
         })
         .filter(Boolean); // Remove any null values
