@@ -27,8 +27,8 @@ export const subscribersService = {
       const options = subscribers
         .filter(subscriber => subscriber.email && (subscriber.id || subscriber._id))
         .map(subscriber => ({
-          value: subscriber.id || subscriber._id,
-          label: subscriber.email
+          Id: subscriber.id || subscriber._id,
+          Email: subscriber.email
         }));
 
       // Return just the options array
