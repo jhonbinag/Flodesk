@@ -165,20 +165,21 @@ apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
 });
 
 // Segment Endpoints
-// 1. Get All Segments or Specific Segment
+// 1. Get All Segments or Specific Segment by Email
 // GET https://flodeskendpoints.vercel.app/api/segments
-// GET https://flodeskendpoints.vercel.app/api/segments?id=segment_id
+// GET https://flodeskendpoints.vercel.app/api/segments?id=email@example.com
 apiRouter.get('/segments', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
+    
     // Check if we have an id query parameter
     if (req.query.id) {
-      // If we have an id, get specific segment
+      // If we have an id (email), get segments for that subscriber
       await handleFlodeskAction(req, res, {
         action: 'getSegment',
         apiKey,
         payload: { 
-          segmentId: req.query.id
+          id: decodeURIComponent(req.query.id)
         }
       });
     } else {
