@@ -16,25 +16,8 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     
     try {
-      // Get subscriber directly by email
-      const response = await client.get(`${ENDPOINTS.subscribers.base}/search`, {
-        params: {
-          email: email
-        }
-      });
-
-      // If no data or no subscriber found
-      if (!response.data || !response.data.subscriber) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
+      // Use the direct subscriber endpoint with email
+      const response = await client.get(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`);
 
       return response; // Return the raw Flodesk response
     } catch (error) {
