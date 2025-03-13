@@ -30,28 +30,29 @@ export const segmentsService = {
           .filter(segment => segment.id && segment.name)
           .map(async segment => {
             try {
-              console.log(`Fetching subscribers for segment: ${segment.id}`);
+              // Get subscribers for this segment
               const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segment.id}/subscribers`);
-              console.log(`Raw subscribers response for ${segment.id}:`, JSON.stringify(subscribersResponse.data, null, 2));
+              console.log(`Subscribers Response for ${segment.id}:`, JSON.stringify(subscribersResponse.data, null, 2));
 
-              // Try different possible response structures
+              // Extract subscribers from response
               let subscribersList = [];
-              if (subscribersResponse.data?.data?.data) {
-                subscribersList = subscribersResponse.data.data.data;
-              } else if (subscribersResponse.data?.data) {
-                subscribersList = subscribersResponse.data.data;
+              if (subscribersResponse.data?.data?.subscribers) {
+                subscribersList = subscribersResponse.data.data.subscribers;
               } else if (subscribersResponse.data?.subscribers) {
                 subscribersList = subscribersResponse.data.subscribers;
+              } else if (subscribersResponse.data?.data) {
+                subscribersList = subscribersResponse.data.data;
               } else if (Array.isArray(subscribersResponse.data)) {
                 subscribersList = subscribersResponse.data;
               }
 
-              console.log(`Parsed subscribers for ${segment.id}:`, subscribersList);
-
+              // Map subscribers to value-label format
               const subscribers = subscribersList.map(sub => ({
                 value: sub.id || sub._id || '',
                 label: sub.email || ''
               }));
+
+              console.log(`Processed subscribers for segment ${segment.id}:`, subscribers);
 
               return {
                 value: segment.id,
@@ -59,7 +60,8 @@ export const segmentsService = {
                 subscribers
               };
             } catch (error) {
-              console.error(`Error fetching subscribers for segment ${segment.id}:`, error);
+              console.error(`Error fetching subscribers for segment ${segment.id}:`, error.response?.data || error.message);
+              // Continue with empty subscribers array on error
               return {
                 value: segment.id,
                 label: segment.name,
@@ -73,7 +75,7 @@ export const segmentsService = {
       return segmentsWithSubscribers;
 
     } catch (error) {
-      console.error('Error getting segments:', error);
+      console.error('Error getting segments:', error.response?.data || error.message);
       throw error;
     }
   },
