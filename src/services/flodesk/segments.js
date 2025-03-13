@@ -40,7 +40,7 @@ export const segmentsService = {
         .filter(segment => segment.id && segment.name)
         .map(segment => {
           // Find subscribers that belong to this segment
-          const segmentSubscribers = allSubscribers
+          const options = allSubscribers
             .filter(sub => {
               // Check if subscriber has this segment
               return (sub.segments || []).some(subSegment => 
@@ -56,11 +56,11 @@ export const segmentsService = {
           return {
             value: segment.id,
             label: segment.name,
-            subscribers: segmentSubscribers
+            options
           };
         });
 
-      console.log('Final segments with subscribers:', JSON.stringify(segmentsWithSubscribers, null, 2));
+      console.log('Final segments with options:', JSON.stringify(segmentsWithSubscribers, null, 2));
       return segmentsWithSubscribers;
 
     } catch (error) {
