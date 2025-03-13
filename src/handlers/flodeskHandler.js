@@ -103,7 +103,26 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
 
         // Segment actions
         case 'getSegment':
-          result = await segmentsService.getSegment(apiKey, payload.segmentId);
+          console.log('Getting specific segment...');
+          if (!payload?.segmentId) {
+            return res.status(400).json({
+              success: false,
+              message: 'Segment ID is required'
+            });
+          }
+          try {
+            const result = await segmentsService.getSegment(apiKey, payload.segmentId);
+            return res.json(result);
+          } catch (error) {
+            if (error.response?.status === 404) {
+              return res.status(404).json({
+                success: false,
+                message: error.response.data.message,
+                error: error.response.data
+              });
+            }
+            throw error;
+          }
           break;
 
         default:
