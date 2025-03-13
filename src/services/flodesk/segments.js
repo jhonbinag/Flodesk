@@ -69,51 +69,63 @@ export const segmentsService = {
     }
   },
 
-  async getSegment(apiKey, segmentId) {
+  async getSegment(apiKey, email) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Get segment details
-      const response = await client.get(`${ENDPOINTS.segments.base}/${segmentId}`);
-      console.log('Raw Segment Response:', response.data);
-      const segment = response.data;
+      // First get the subscriber to find their segments
+      const subscriberResponse = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
+      console.log('Subscriber Response:', JSON.stringify(subscriberResponse.data, null, 2));
+      
+      const subscriber = subscriberResponse.data;
+      if (!subscriber.segments || subscriber.segments.length === 0) {
+        return []; // Return empty array if subscriber has no segments
+      }
 
-      // Get subscribers in this segment
-      const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segmentId}/subscribers`);
-      console.log('Segment Subscribers Response:', subscribersResponse.data);
+      // Get all segments
+      const segmentsResponse = await client.get(ENDPOINTS.segments.base);
+      let allSegments = [];
+      if (segmentsResponse.data?.data?.data) {
+        allSegments = segmentsResponse.data.data.data;
+      } else if (segmentsResponse.data?.data) {
+        allSegments = segmentsResponse.data.data;
+      } else if (Array.isArray(segmentsResponse.data)) {
+        allSegments = segmentsResponse.data;
+      }
 
-      // Transform subscribers into value-label pairs
-      const subscribers = (subscribersResponse.data?.subscribers || []).map(sub => ({
-        value: sub.id || '',
-        label: sub.email || ''
-      }));
+      // Match subscriber's segments with complete segment data
+      const subscriberSegments = subscriber.segments
+        .map(subscriberSegment => {
+          const matchingSegment = allSegments.find(segment => 
+            segment.id === subscriberSegment.id
+          );
+          if (!matchingSegment) return null;
 
-      // Return segment with its subscribers
-      return {
-        value: segment.id || '',
-        label: segment.name || '',
-        subscribers: {
-          options: subscribers // Using same format as other endpoints
-        }
-      };
+          return {
+            value: matchingSegment.id,
+            label: matchingSegment.name,
+            options: [{
+              value: subscriber.id || '',
+              label: subscriber.email || ''
+            }]
+          };
+        })
+        .filter(Boolean); // Remove any null values
+
+      return subscriberSegments;
+
     } catch (error) {
-      console.error('Error getting segment:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-
+      console.error('Error getting segment:', error.response?.data || error.message);
       if (error.response?.status === 404) {
         throw {
           response: {
             status: 404,
             data: {
-              message: `Segment with id ${segmentId} not found`,
+              message: `Subscriber with email ${email} not found`,
               code: 'not_found'
             }
           }
         };
       }
-
       throw error;
     }
   },

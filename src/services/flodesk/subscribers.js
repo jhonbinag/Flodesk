@@ -48,17 +48,34 @@ export const subscribersService = {
   async getSubscriber(apiKey, email, segmentsOnly = false) {
     const client = createFlodeskClient(apiKey);
     try {
+      // Get subscriber details
       const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
-      
       console.log('Raw Subscriber Response:', response.data);
-
       const subscriber = response.data;
 
-      // Transform segments directly from subscriber data
-      const subscriberSegments = (subscriber.segments || []).map(segment => ({
-        value: segment.id || '',
-        label: segment.name || ''
-      }));
+      // Get all segments to match with subscriber's segments
+      const segmentsResponse = await client.get(ENDPOINTS.segments.base);
+      let allSegments = [];
+      if (segmentsResponse.data?.data?.data) {
+        allSegments = segmentsResponse.data.data.data;
+      } else if (segmentsResponse.data?.data) {
+        allSegments = segmentsResponse.data.data;
+      } else if (Array.isArray(segmentsResponse.data)) {
+        allSegments = segmentsResponse.data;
+      }
+
+      // Match subscriber's segments with complete segment data
+      const subscriberSegments = (subscriber.segments || [])
+        .map(subscriberSegment => {
+          const matchingSegment = allSegments.find(segment => 
+            segment.id === subscriberSegment.id
+          );
+          return matchingSegment ? {
+            value: matchingSegment.id,
+            label: matchingSegment.name
+          } : null;
+        })
+        .filter(Boolean); // Remove any null values
 
       // If only segments are requested, return in options format
       if (segmentsOnly) {
