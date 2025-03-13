@@ -130,28 +130,19 @@ export const subscribersService = {
     return client.post(ENDPOINTS.subscribers.base, subscriberData);
   },
 
-  async removeFromSegment(apiKey, email, segmentId) {
+  async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Send segment ID in the request body
+      // Make sure segment_ids is an array
+      const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
+      
       return client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {  // axios requires 'data' property for DELETE request body
-          segment_ids: [segmentId]
+        data: {
+          segment_ids: segmentIdsArray
         }
       });
     } catch (error) {
-      console.error('Error removing from segment:', error);
-      if (error.response?.status === 404) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found or segment ${segmentId} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
+      console.error('Error removing segments:', error);
       throw error;
     }
   },

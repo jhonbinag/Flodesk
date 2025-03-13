@@ -132,26 +132,29 @@ apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
     }
 
     const email = decodeURIComponent(req.params.email);
-    const segmentId = req.body.segmentId; // Get segment ID from request body
+    const segmentIds = req.body.segment_ids; // Match Flodesk API expectation
     
-    console.log('Removing segment:', { email, segmentId }); // Debug log
+    console.log('Removing segments:', { email, segmentIds }); // Debug log
     
     await handleFlodeskAction(req, res, {
       action: 'removeFromSegment',
       apiKey,
-      payload: { email, segmentId }
+      payload: { 
+        email, 
+        segment_ids: segmentIds // Pass as segment_ids to match Flodesk API
+      }
     });
 
     return res.json({
       success: true,
-      message: `Successfully removed ${email} from segment ${segmentId}`
+      message: `Successfully removed segments from ${email}`
     });
 
   } catch (error) {
     console.error('Server Error:', error);
     return res.status(error.response?.status || 500).json({
       success: false,
-      message: error.response?.data?.message || 'Failed to remove from segment',
+      message: error.response?.data?.message || 'Failed to remove segments',
       error: error.response?.data || error.message
     });
   }
