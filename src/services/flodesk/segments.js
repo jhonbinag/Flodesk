@@ -21,22 +21,36 @@ export const segmentsService = {
         segments = response.data.segments;
       }
 
-      // Transform segments into value-label pairs
-      const options = segments
-        .filter(segment => segment.id && segment.name)
-        .map(segment => ({
-          value: segment.id,
-          label: segment.name
-        }));
+      // Transform segments and fetch subscribers for each
+      const segmentsWithSubscribers = await Promise.all(
+        segments
+          .filter(segment => segment.id && segment.name)
+          .map(async segment => {
+            // Get subscribers for this segment
+            const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segment.id}/subscribers`);
+            
+            // Transform subscribers into value-label pairs
+            const subscribers = (subscribersResponse.data?.subscribers || []).map(sub => ({
+              value: sub.id || '',
+              label: sub.email || ''
+            }));
 
-      return options; // Return just the options array
+            return {
+              value: segment.id,
+              label: segment.name,
+              subscribers: subscribers // Remove the options wrapper
+            };
+          })
+      );
+
+      return segmentsWithSubscribers;
     } catch (error) {
       console.error('Error getting segments:', {
         error: error.message,
         response: error.response?.data,
         status: error.response?.status
       });
-      return []; // Return empty array on error
+      return [];
     }
   },
 
