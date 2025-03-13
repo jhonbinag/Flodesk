@@ -125,8 +125,10 @@ apiRouter.delete('/subscribers/:email/segments/:segmentId', async (req, res) => 
   try {
     const apiKey = req.headers.authorization;
     const email = decodeURIComponent(req.params.email);
-    // Decode the segment name/id from the URL
-    const segmentId = decodeURIComponent(req.params.segmentId);
+    // Handle both + and %20 encodings for spaces
+    const segmentId = decodeURIComponent(req.params.segmentId.replace(/\+/g, ' '));
+    
+    console.log('Removing segment:', { email, segmentId }); // Debug log
     
     await handleFlodeskAction(req, res, {
       action: 'removeFromSegment',
