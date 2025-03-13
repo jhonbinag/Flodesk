@@ -7,6 +7,19 @@ export const subscribersService = {
     try {
       const response = await client.get(ENDPOINTS.subscribers.base);
       
+      // Add logging to debug the response
+      console.log('Flodesk Response:', {
+        hasData: !!response.data,
+        dataKeys: Object.keys(response.data || {}),
+        subscribers: response.data?.subscribers
+      });
+
+      // Check if we have valid data
+      if (!response.data || !Array.isArray(response.data.subscribers)) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Invalid response format from Flodesk API');
+      }
+
       // Transform the subscribers array into options format
       const options = response.data.subscribers.map(subscriber => ({
         value: subscriber.id,
@@ -19,7 +32,11 @@ export const subscribersService = {
         }
       };
     } catch (error) {
-      console.error('Error getting subscribers:', error);
+      console.error('Error getting subscribers:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   },
