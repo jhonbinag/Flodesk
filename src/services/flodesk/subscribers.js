@@ -63,7 +63,6 @@ export const subscribersService = {
       // If only segments are requested, return in options format
       if (segmentsOnly) {
         return {
-          success: true,
           id: subscriber.id || '',
           email: subscriber.email || '',
           first_name: subscriber.first_name || '',
