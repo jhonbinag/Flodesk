@@ -5,65 +5,28 @@ export const segmentsService = {
   async getAllSegments(apiKey) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Get all segments first
+      // Get all segments
       const response = await client.get(ENDPOINTS.segments.base);
-      console.log('Raw Segments Response:', JSON.stringify(response.data, null, 2));
-
+      
       // Get segments array
       let segments = [];
-      if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
+      if (response.data?.data?.data) {
         segments = response.data.data.data;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
+      } else if (response.data?.data) {
         segments = response.data.data;
       } else if (Array.isArray(response.data)) {
         segments = response.data;
       }
 
-      // Get all subscribers
-      const subscribersResponse = await client.get(ENDPOINTS.subscribers.base);
-      console.log('All Subscribers Response:', JSON.stringify(subscribersResponse.data, null, 2));
-
-      // Get subscribers array and filter for active only
-      let allSubscribers = [];
-      if (subscribersResponse.data?.data?.data) {
-        allSubscribers = subscribersResponse.data.data.data;
-      } else if (subscribersResponse.data?.data) {
-        allSubscribers = subscribersResponse.data.data;
-      } else if (Array.isArray(subscribersResponse.data)) {
-        allSubscribers = subscribersResponse.data;
-      }
-
-      // Filter for active subscribers
-      const activeSubscribers = allSubscribers.filter(sub => sub.status === 'active');
-
-      // Transform segments and match with active subscribers only
-      const segmentsWithSubscribers = segments
+      // Transform segments into simple value-label pairs
+      const segmentOptions = segments
         .filter(segment => segment.id && segment.name)
-        .map(segment => {
-          // Find active subscribers that belong to this segment
-          const options = activeSubscribers
-            .filter(sub => {
-              // Check if subscriber has this segment
-              return (sub.segments || []).some(subSegment => 
-                subSegment.id === segment.id || 
-                subSegment === segment.id
-              );
-            })
-            .map(sub => ({
-              value: sub.id || sub._id || '',
-              label: sub.email || ''
-            }));
+        .map(segment => ({
+          value: segment.id,
+          label: segment.name
+        }));
 
-          return {
-            value: segment.id,
-            label: segment.name,
-            options
-          };
-        });
-
-      console.log('Final segments with active subscribers:', JSON.stringify(segmentsWithSubscribers, null, 2));
-      return segmentsWithSubscribers;
-
+      return segmentOptions;
     } catch (error) {
       console.error('Error getting segments:', error.response?.data || error.message);
       throw error;

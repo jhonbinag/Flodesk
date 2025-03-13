@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { handleFlodeskAction } from './src/handlers/flodeskHandler.js';
+import { segmentsService } from './src/services/flodesk/segments.js';
 
 const app = express();
 
@@ -228,17 +229,16 @@ apiRouter.get('/segments', async (req, res) => {
         }
       });
     } else {
-      // Otherwise get all segments
-      await handleFlodeskAction(req, res, {
-        action: 'getAllSegments',
-        apiKey,
-        payload: {}
+      // Get all segments
+      const segments = await segmentsService.getAllSegments(apiKey);
+      return res.json({
+        options: segments
       });
     }
   } catch (error) {
     console.error('Server Error:', error);
-    res.status(500).json({
-      options: [], // Return empty options on error for GoHighLevel
+    return res.status(500).json({
+      options: [], // Return empty options on error
       error: error.message
     });
   }
