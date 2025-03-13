@@ -49,11 +49,48 @@ export const subscribersService = {
     try {
       // Use the direct endpoint to get subscriber by email
       const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
+      
+      console.log('Raw Subscriber Response:', response.data);
+
+      // Transform the response to include all required fields
+      const subscriber = response.data;
       return {
-        data: response.data
+        data: {
+          id: subscriber.id || '',
+          status: subscriber.status || 'active',
+          email: subscriber.email || '',
+          source: subscriber.source || 'manual',
+          first_name: subscriber.first_name || '',
+          last_name: subscriber.last_name || '',
+          segments: (subscriber.segments || []).map(segment => ({
+            id: segment.id || '',
+            name: segment.name || ''
+          })),
+          custom_fields: subscriber.custom_fields || {},
+          optin_ip: subscriber.optin_ip || '',
+          optin_timestamp: subscriber.optin_timestamp || null,
+          created_at: subscriber.created_at || null
+        }
       };
     } catch (error) {
-      console.error('Error getting subscriber:', error);
+      console.error('Error getting subscriber:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
+      if (error.response?.status === 404) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found`,
+              code: 'not_found'
+            }
+          }
+        };
+      }
+
       throw error;
     }
   },
@@ -66,9 +103,9 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
-    const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.subscribers.find(sub => 
-      sub.email.toLowerCase() === email.toLowerCase()
+    const subscribers = await this.getAllSubscribers(apiKey);
+    const subscriber = subscribers.find(sub => 
+      sub.label.toLowerCase() === email.toLowerCase()
     );
     
     if (!subscriber) {
@@ -83,15 +120,15 @@ export const subscribersService = {
       };
     }
 
-    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments/${segmentId}`);
+    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments/${segmentId}`);
   },
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
-    const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.subscribers.find(sub => 
-      sub.email.toLowerCase() === email.toLowerCase()
+    const subscribers = await this.getAllSubscribers(apiKey);
+    const subscriber = subscribers.find(sub => 
+      sub.label.toLowerCase() === email.toLowerCase()
     );
     
     if (!subscriber) {
@@ -106,7 +143,7 @@ export const subscribersService = {
       };
     }
 
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments`, {
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
       segment_ids: segmentIds
     });
   },
@@ -114,9 +151,9 @@ export const subscribersService = {
   async unsubscribeFromAll(apiKey, email) {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
-    const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.subscribers.find(sub => 
-      sub.email.toLowerCase() === email.toLowerCase()
+    const subscribers = await this.getAllSubscribers(apiKey);
+    const subscriber = subscribers.find(sub => 
+      sub.label.toLowerCase() === email.toLowerCase()
     );
     
     if (!subscriber) {
@@ -131,6 +168,6 @@ export const subscribersService = {
       };
     }
 
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/unsubscribe`);
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
   }
 }; 

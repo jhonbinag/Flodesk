@@ -66,10 +66,10 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
             });
           }
           try {
-            result = await subscribersService.getSubscriber(apiKey, payload.email);
+            const result = await subscribersService.getSubscriber(apiKey, payload.email);
             return res.json({
               success: true,
-              data: result.data
+              ...result.data
             });
           } catch (error) {
             if (error.response?.status === 404) {
