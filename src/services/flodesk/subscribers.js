@@ -10,7 +10,7 @@ export const subscribersService = {
       // Add logging to debug the response
       console.log('Raw Flodesk Response:', response.data);
 
-      // Check if we have valid data and handle different response formats
+      // Get subscribers array from response
       let subscribers = [];
       if (response.data) {
         if (Array.isArray(response.data)) {
@@ -22,17 +22,18 @@ export const subscribersService = {
         }
       }
 
-      // Transform the subscribers array into options format
+      // Transform into exact format needed
       const options = subscribers.map(subscriber => ({
-        value: subscriber.id || subscriber._id,
-        label: subscriber.email
-      }));
+        label: subscriber.email || '', // Use email as label
+        value: subscriber.id || subscriber._id || '' // Use ID as value
+      })).filter(option => option.label && option.value); // Remove any invalid entries
 
       console.log('Transformed Options:', options);
 
+      // Return in exact format requested
       return {
         data: {
-          options
+          options: options
         }
       };
     } catch (error) {
@@ -42,7 +43,7 @@ export const subscribersService = {
         status: error.response?.status
       });
       
-      // Return empty options if there's an error
+      // Return empty options array on error
       return {
         data: {
           options: []
