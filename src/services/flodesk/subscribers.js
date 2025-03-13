@@ -137,7 +137,12 @@ export const subscribersService = {
       
       console.log('Removing segments:', { email, segmentIds: segmentIdsArray });
       
-      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      // First get the subscriber to get their ID
+      const subscriberResponse = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
+      const subscriberId = subscriberResponse.data.id;
+
+      // Then remove from segments using subscriber ID
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${subscriberId}/segments`, {
         data: {
           segment_ids: segmentIdsArray
         }
