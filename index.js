@@ -120,13 +120,19 @@ apiRouter.post('/subscribers/:email/segments', async (req, res) => {
 });
 
 // 5. Remove from Segment
-// DELETE https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments/{segmentId}
-apiRouter.delete('/subscribers/:email/segments/:segmentId', async (req, res) => {
+// DELETE https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        message: 'API key is required in Authorization header'
+      });
+    }
+
     const email = decodeURIComponent(req.params.email);
-    // Handle both + and %20 encodings for spaces
-    const segmentId = decodeURIComponent(req.params.segmentId.replace(/\+/g, ' '));
+    const segmentId = req.body.segmentId; // Get segment ID from request body
     
     console.log('Removing segment:', { email, segmentId }); // Debug log
     
@@ -135,12 +141,18 @@ apiRouter.delete('/subscribers/:email/segments/:segmentId', async (req, res) => 
       apiKey,
       payload: { email, segmentId }
     });
+
+    return res.json({
+      success: true,
+      message: `Successfully removed ${email} from segment ${segmentId}`
+    });
+
   } catch (error) {
     console.error('Server Error:', error);
-    res.status(500).json({
+    return res.status(error.response?.status || 500).json({
       success: false,
-      message: 'Internal server error',
-      error: error.message
+      message: error.response?.data?.message || 'Failed to remove from segment',
+      error: error.response?.data || error.message
     });
   }
 });
