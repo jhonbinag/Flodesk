@@ -44,22 +44,29 @@ export const subscribersService = {
     }
   },
 
-  async getSubscriber(apiKey, email) {
+  async getSubscriber(apiKey, email, segmentsOnly = false) {
     const client = createFlodeskClient(apiKey);
     try {
       const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
       
       console.log('Raw Subscriber Response:', response.data);
 
-      // Transform the response to include all required fields
       const subscriber = response.data;
 
-      // Transform segments into direct array of value-label pairs
+      // Transform segments into value-label pairs
       const segments = (subscriber.segments || []).map(segment => ({
         value: segment.id || '',
         label: segment.name || ''
       }));
 
+      // If only segments are requested, return in options format
+      if (segmentsOnly) {
+        return {
+          options: segments
+        };
+      }
+
+      // Otherwise return full subscriber data
       return {
         id: subscriber.id || '',
         status: subscriber.status || 'active',
@@ -67,7 +74,7 @@ export const subscribersService = {
         source: subscriber.source || 'manual',
         first_name: subscriber.first_name || '',
         last_name: subscriber.last_name || '',
-        segments, // Direct array without options wrapper
+        segments,
         custom_fields: subscriber.custom_fields || {},
         optin_ip: subscriber.optin_ip || '',
         optin_timestamp: subscriber.optin_timestamp || null,

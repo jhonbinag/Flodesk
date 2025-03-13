@@ -49,12 +49,23 @@ apiRouter.get('/subscribers', async (req, res) => {
 apiRouter.get('/subscribers/:email', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
-    const email = decodeURIComponent(req.params.email);
+    // Check both params and query for email
+    const email = req.params.email || req.query.id;
     
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
     await handleFlodeskAction(req, res, {
       action: 'getSubscriber',
       apiKey,
-      payload: { email }
+      payload: { 
+        email: decodeURIComponent(email),
+        segmentsOnly: true // New flag to indicate we only want segments
+      }
     });
   } catch (error) {
     console.error('Server Error:', error);
