@@ -22,18 +22,25 @@ apiRouter.get('/health', (_, res) => {
 apiRouter.get('/subscribers', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
-    if (!apiKey) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authorization header is required'
+    // Check if we have an id query parameter
+    if (req.query.id) {
+      // If we have an id, get specific subscriber
+      await handleFlodeskAction(req, res, {
+        action: 'getSubscriber',
+        apiKey,
+        payload: { 
+          email: decodeURIComponent(req.query.id),
+          segmentsOnly: true
+        }
+      });
+    } else {
+      // Otherwise get all subscribers
+      await handleFlodeskAction(req, res, {
+        action: 'getAllSubscribers',
+        apiKey,
+        payload: {}
       });
     }
-
-    await handleFlodeskAction(req, res, {
-      action: 'getAllSubscribers',
-      apiKey,
-      payload: {}
-    });
   } catch (error) {
     console.error('Server Error:', error);
     res.status(500).json({
@@ -44,27 +51,18 @@ apiRouter.get('/subscribers', async (req, res) => {
   }
 });
 
-// 2. Get Specific Subscriber
-// GET https://flodeskendpoints.vercel.app/api/subscribers/{email}
+// 2. Get Specific Subscriber by path parameter
 apiRouter.get('/subscribers/:email', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
-    // Check both params and query for email
-    const email = req.params.email || req.query.id;
+    const email = decodeURIComponent(req.params.email);
     
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email is required'
-      });
-    }
-
     await handleFlodeskAction(req, res, {
       action: 'getSubscriber',
       apiKey,
       payload: { 
-        email: decodeURIComponent(email),
-        segmentsOnly: true // New flag to indicate we only want segments
+        email,
+        segmentsOnly: true
       }
     });
   } catch (error) {
