@@ -18,30 +18,21 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Use the direct subscriber endpoint with email
-      const response = await client.get(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`);
+      // Get all subscribers with email filter in query params
+      const response = await client.get(ENDPOINTS.subscribers.base, {
+        params: {
+          email: email,
+          per_page: 1 // Limit to 1 result since we're looking for a specific email
+        }
+      });
 
       console.log('Subscriber response:', {
         status: response.status,
         data: response.data
       });
 
-      // Return in the same format as other responses
-      return { 
-        data: {
-          subscriber: response.data
-        }
-      };
-    } catch (error) {
-      console.error('Flodesk API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        endpoint: `${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`
-      });
-
-      // If subscriber not found
-      if (error.response?.status === 404) {
+      // Check if we got any subscribers
+      if (!response.data?.subscribers?.length) {
         throw {
           response: {
             status: 404,
@@ -53,7 +44,33 @@ export const subscribersService = {
         };
       }
 
-      // For other errors
+      // Return the first subscriber that matches
+      return { 
+        data: {
+          subscriber: response.data.subscribers[0]
+        }
+      };
+    } catch (error) {
+      console.error('Flodesk API Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        endpoint: ENDPOINTS.subscribers.base,
+        params: { email }
+      });
+
+      if (error.response?.status === 404 || !error.response) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found`,
+              code: 'not_found'
+            }
+          }
+        };
+      }
+
       throw {
         response: {
           status: error.response?.status || 500,
