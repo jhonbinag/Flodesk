@@ -23,9 +23,13 @@ export const subscribersService = {
         }
       }
 
-      // Transform into array of value-label pairs
+      // Transform into array of value-label pairs, filtering for active subscribers only
       const options = subscribers
-        .filter(subscriber => subscriber.email && (subscriber.id || subscriber._id))
+        .filter(subscriber => 
+          subscriber.email && 
+          (subscriber.id || subscriber._id) && 
+          subscriber.status === 'active' // Only include active subscribers
+        )
         .map(subscriber => ({
           value: subscriber.id || subscriber._id,
           label: subscriber.email
@@ -52,6 +56,19 @@ export const subscribersService = {
       const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
       console.log('Raw Subscriber Response:', response.data);
       const subscriber = response.data;
+
+      // Check if subscriber is inactive/unsubscribed
+      if (subscriber.status !== 'active') {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber ${email} is not active`,
+              code: 'inactive_subscriber'
+            }
+          }
+        };
+      }
 
       // Get all segments to match with subscriber's segments
       const segmentsResponse = await client.get(ENDPOINTS.segments.base);
@@ -103,24 +120,7 @@ export const subscribersService = {
         created_at: subscriber.created_at || null
       };
     } catch (error) {
-      console.error('Error getting subscriber:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-
-      if (error.response?.status === 404) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
-
+      console.error('Error getting subscriber:', error);
       throw error;
     }
   },
