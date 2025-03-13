@@ -132,7 +132,7 @@ apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
     }
 
     const email = decodeURIComponent(req.params.email);
-    const segmentIds = req.body.segment_ids; // Match Flodesk API expectation
+    const segmentIds = req.body.segment_ids;
     
     console.log('Removing segments:', { email, segmentIds }); // Debug log
     
@@ -141,7 +141,7 @@ apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
       apiKey,
       payload: { 
         email, 
-        segment_ids: segmentIds // Pass as segment_ids to match Flodesk API
+        segment_ids: segmentIds
       }
     });
 

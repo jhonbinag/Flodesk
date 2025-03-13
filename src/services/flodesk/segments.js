@@ -17,15 +17,13 @@ export const segmentsService = {
         segments = response.data.data;
       } else if (Array.isArray(response.data)) {
         segments = response.data;
-      } else if (response.data?.segments && Array.isArray(response.data.segments)) {
-        segments = response.data.segments;
       }
 
       // Get all subscribers
       const subscribersResponse = await client.get(ENDPOINTS.subscribers.base);
       console.log('All Subscribers Response:', JSON.stringify(subscribersResponse.data, null, 2));
 
-      // Get subscribers array
+      // Get subscribers array and filter for active only
       let allSubscribers = [];
       if (subscribersResponse.data?.data?.data) {
         allSubscribers = subscribersResponse.data.data.data;
@@ -35,12 +33,15 @@ export const segmentsService = {
         allSubscribers = subscribersResponse.data;
       }
 
-      // Transform segments and match subscribers
+      // Filter for active subscribers
+      const activeSubscribers = allSubscribers.filter(sub => sub.status === 'active');
+
+      // Transform segments and match with active subscribers only
       const segmentsWithSubscribers = segments
         .filter(segment => segment.id && segment.name)
         .map(segment => {
-          // Find subscribers that belong to this segment
-          const options = allSubscribers
+          // Find active subscribers that belong to this segment
+          const options = activeSubscribers
             .filter(sub => {
               // Check if subscriber has this segment
               return (sub.segments || []).some(subSegment => 
@@ -60,7 +61,7 @@ export const segmentsService = {
           };
         });
 
-      console.log('Final segments with options:', JSON.stringify(segmentsWithSubscribers, null, 2));
+      console.log('Final segments with active subscribers:', JSON.stringify(segmentsWithSubscribers, null, 2));
       return segmentsWithSubscribers;
 
     } catch (error) {
