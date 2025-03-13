@@ -18,15 +18,21 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Use direct subscriber endpoint with email
-      const response = await client.get(`${ENDPOINTS.subscribers.base}/email/${encodeURIComponent(email)}`);
+      // Get all subscribers first
+      const response = await client.get(ENDPOINTS.subscribers.base);
 
-      console.log('Subscriber response:', {
-        status: response.status,
+      console.log('All subscribers response:', {
+        total: response.data?.subscribers?.length,
         data: response.data
       });
 
-      if (!response.data) {
+      // Find the subscriber with matching email
+      const subscribers = response.data?.subscribers || [];
+      const subscriber = subscribers.find(sub => 
+        sub.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!subscriber) {
         throw {
           response: {
             status: 404,
@@ -38,25 +44,22 @@ export const subscribersService = {
         };
       }
 
-      return response;
+      // Return in the same format as other responses
+      return { 
+        data: {
+          subscriber: subscriber
+        }
+      };
     } catch (error) {
       console.error('Flodesk API Error:', {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
-        endpoint: `${ENDPOINTS.subscribers.base}/email/${encodeURIComponent(email)}`
+        endpoint: ENDPOINTS.subscribers.base
       });
 
       if (error.response?.status === 404) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
+        throw error;
       }
 
       throw {
