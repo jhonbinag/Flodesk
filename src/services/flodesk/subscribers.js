@@ -16,30 +16,19 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     
     try {
-      console.log('Attempting to get subscriber:', {
-        email,
-        endpoint: `${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`
+      console.log('Attempting to get subscriber by email:', { email });
+
+      // Get all subscribers and filter by email
+      const response = await client.get(ENDPOINTS.subscribers.base, {
+        params: { email: email }
       });
 
-      // Use the direct subscriber endpoint with email
-      const response = await client.get(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`);
+      const subscribers = response.data.subscribers || [];
+      const subscriber = subscribers.find(sub => 
+        sub.email.toLowerCase() === email.toLowerCase()
+      );
 
-      console.log('Flodesk API Response:', {
-        status: response.status,
-        data: response.data,
-        headers: response.headers
-      });
-
-      return response;
-    } catch (error) {
-      console.error('Flodesk API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        stack: error.stack
-      });
-
-      if (error.response?.status === 404) {
+      if (!subscriber) {
         throw {
           response: {
             status: 404,
@@ -50,24 +39,38 @@ export const subscribersService = {
           }
         };
       }
+
+      return { data: subscriber };
+    } catch (error) {
+      console.error('Flodesk API Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       throw error;
     }
   },
 
   async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
-    return client.delete(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}/segments/${segmentId}`);
+    // First get the subscriber to ensure they exist
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments/${segmentId}`);
   },
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    return client.post(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}/segments`, {
+    // First get the subscriber to ensure they exist
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments`, {
       segment_ids: segmentIds
     });
   },
 
   async unsubscribeFromAll(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    return client.post(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}/unsubscribe`);
+    // First get the subscriber to ensure they exist
+    const subscriber = await this.getSubscriber(apiKey, email);
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/unsubscribe`);
   }
 }; 
