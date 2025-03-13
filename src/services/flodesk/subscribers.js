@@ -30,10 +30,8 @@ export const subscribersService = {
           label: subscriber.email
         }));
 
-      // Return with options key for GoHighLevel
-      return {
-        options: options
-      };
+      // Return just the options array
+      return options;
     } catch (error) {
       console.error('Error getting subscribers:', {
         error: error.message,
@@ -41,10 +39,8 @@ export const subscribersService = {
         status: error.response?.status
       });
       
-      // Return empty options array on error
-      return {
-        options: []
-      };
+      // Return empty array on error
+      return [];
     }
   },
 
@@ -71,7 +67,7 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
     const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.data.subscribers.find(sub => 
+    const subscriber = response.subscribers.find(sub => 
       sub.email.toLowerCase() === email.toLowerCase()
     );
     
@@ -94,7 +90,7 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
     const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.data.subscribers.find(sub => 
+    const subscriber = response.subscribers.find(sub => 
       sub.email.toLowerCase() === email.toLowerCase()
     );
     
@@ -119,7 +115,7 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     // Get all subscribers and find the one with matching email
     const response = await this.getAllSubscribers(apiKey);
-    const subscriber = response.data.subscribers.find(sub => 
+    const subscriber = response.subscribers.find(sub => 
       sub.email.toLowerCase() === email.toLowerCase()
     );
     

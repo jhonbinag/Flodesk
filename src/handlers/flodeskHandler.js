@@ -35,7 +35,17 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           
         // Subscriber actions
         case 'getAllSubscribers':
-          result = await subscribersService.getAllSubscribers(apiKey, payload);
+          try {
+            const subscribers = await subscribersService.getAllSubscribers(apiKey, payload);
+            return res.json({
+              options: subscribers
+            });
+          } catch (error) {
+            console.error('Error in getAllSubscribers:', error);
+            return res.json({
+              options: []
+            });
+          }
           break;
         case 'getSubscriber':
           console.log('Getting subscriber by email...');
