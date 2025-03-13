@@ -85,10 +85,16 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           }
           break;
         case 'removeFromSegment':
+          if (!payload.segment_ids) {
+            return res.status(400).json({
+              success: false,
+              message: 'segment_ids array is required'
+            });
+          }
           result = await subscribersService.removeFromSegment(
             apiKey, 
             payload.email,
-            payload.segmentId
+            payload.segment_ids
           );
           break;
         case 'addToSegments':
@@ -136,7 +142,7 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
 
       return res.json({
         success: true,
-        data: result.data
+        data: result?.data
       });
 
     } catch (apiError) {
