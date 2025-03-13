@@ -68,6 +68,9 @@
         <label>
             <input type="radio" name="method" value="POST"> POST
         </label>
+        <label>
+            <input type="radio" name="method" value="DELETE"> DELETE
+        </label>
     </div>
 
     <div class="form-group">
@@ -99,52 +102,46 @@
     <script>
         function updatePayloadFields() {
             const action = document.getElementById('action').value;
-            const payloadFields = document.getElementById('payloadFields');
-            
             let fields = '';
             
-            switch(action) {
-                case 'getSubscriber':
-                case 'createOrUpdateSubscriber':
-                case 'addToSegments':
-                case 'removeFromSegment':
-                case 'unsubscribeFromAll':
-                    fields = `
-                        <div class="form-group">
-                            <label>Email:</label>
-                            <input type="email" id="email" placeholder="Enter email" required>
-                        </div>
-                    `;
-                    if (action === 'createOrUpdateSubscriber') {
-                        fields += `
-                            <div class="form-group">
-                                <label>First Name:</label>
-                                <input type="text" id="firstName" placeholder="Enter first name">
-                                <label>Last Name:</label>
-                                <input type="text" id="lastName" placeholder="Enter last name">
-                            </div>
-                        `;
-                    }
-                    if (action === 'addToSegments') {
-                        fields += `
-                            <div class="form-group">
-                                <label>Segment IDs (comma-separated):</label>
-                                <input type="text" id="segmentIds" placeholder="segment1,segment2">
-                            </div>
-                        `;
-                    }
-                    if (action === 'removeFromSegment') {
-                        fields += `
-                            <div class="form-group">
-                                <label>Segment ID:</label>
-                                <input type="text" id="segmentId" placeholder="Enter segment ID">
-                            </div>
-                        `;
-                    }
-                    break;
+            if (['getSubscriber', 'createOrUpdateSubscriber', 'addToSegments', 'removeFromSegment', 'unsubscribeFromAll'].includes(action)) {
+                fields += `
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" placeholder="Enter subscriber email">
+                    </div>
+                `;
             }
-            
-            payloadFields.innerHTML = fields;
+
+            if (action === 'removeFromSegment') {
+                fields += `
+                    <div class="form-group">
+                        <label for="segmentId">Segment IDs (comma-separated):</label>
+                        <input type="text" id="segmentId" placeholder="e.g. id1,id2,id3">
+                    </div>
+                `;
+            }
+
+            if (action === 'createOrUpdateSubscriber') {
+                fields += `
+                    <div class="form-group">
+                        <label>First Name:</label>
+                        <input type="text" id="firstName" placeholder="Enter first name">
+                        <label>Last Name:</label>
+                        <input type="text" id="lastName" placeholder="Enter last name">
+                    </div>
+                `;
+            }
+            if (action === 'addToSegments') {
+                fields += `
+                    <div class="form-group">
+                        <label>Segment IDs (comma-separated):</label>
+                        <input type="text" id="segmentIds" placeholder="segment1,segment2">
+                    </div>
+                `;
+            }
+
+            document.getElementById('payloadFields').innerHTML = fields;
         }
 
         async function testHealth() {
@@ -176,14 +173,28 @@
                     }
                 };
 
-                if (method === 'GET') {
+                const email = document.getElementById('email')?.value;
+                
+                if (action === 'removeFromSegment') {
+                    options.method = 'DELETE';
+                    url = `/api/subscribers/${encodeURIComponent(email)}/segments`;
+                    const segmentIds = document.getElementById('segmentId')?.value.split(',').map(s => s.trim());
+                    
+                    if (!segmentIds || segmentIds.length === 0) {
+                        document.getElementById('result').innerHTML = '<div class="error">Segment IDs are required</div>';
+                        return;
+                    }
+
+                    options.body = JSON.stringify({
+                        segment_ids: segmentIds
+                    });
+                } else if (method === 'GET') {
                     options.method = 'GET';
                     switch(action) {
                         case 'getAllSubscribers':
                             url = '/api/flodesk/subscribers';
                             break;
                         case 'getSubscriber':
-                            const email = document.getElementById('email')?.value;
                             if (!email) {
                                 document.getElementById('result').innerHTML = '<div class="error">Email is required</div>';
                                 return;
@@ -200,7 +211,6 @@
                     options.method = 'POST';
                     let payload = {};
                     
-                    const email = document.getElementById('email')?.value;
                     if (action !== 'getAllSubscribers' && action !== 'getAllSegments' && !email) {
                         document.getElementById('result').innerHTML = '<div class="error">Email is required</div>';
                         return;
@@ -219,8 +229,7 @@
                             payload = { email, segmentIds };
                             break;
                         case 'removeFromSegment':
-                            const segmentId = document.getElementById('segmentId')?.value;
-                            payload = { email, segmentId };
+                            payload = { email };
                             break;
                         case 'unsubscribeFromAll':
                             payload = { email };
