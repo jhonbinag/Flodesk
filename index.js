@@ -131,10 +131,23 @@ apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
       });
     }
 
+    // Log the incoming request details
+    console.log('DELETE Request:', {
+      path: req.path,
+      email: req.params.email,
+      body: req.body,
+      headers: req.headers
+    });
+
     const email = decodeURIComponent(req.params.email);
     const segmentIds = req.body.segment_ids;
     
-    console.log('Removing segments:', { email, segmentIds }); // Debug log
+    if (!segmentIds || !Array.isArray(segmentIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'segment_ids array is required in request body'
+      });
+    }
     
     await handleFlodeskAction(req, res, {
       action: 'removeFromSegment',
