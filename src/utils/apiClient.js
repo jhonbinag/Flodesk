@@ -19,14 +19,9 @@ export const createFlodeskClient = (apiKey) => {
   });
 
   // Add request logging
-  client.interceptors.request.use(config => {
-    console.log('API Request:', {
-      method: config.method,
-      url: config.url,
-      params: config.params,
-      data: config.data
-    });
-    return config;
+  client.interceptors.request.use(request => {
+    console.log('Making request to:', request.baseURL + request.url);
+    return request;
   });
 
   // Add response logging
