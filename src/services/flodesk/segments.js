@@ -102,7 +102,8 @@ export const segmentsService = {
 
           return {
             value: matchingSegment.id,
-            label: matchingSegment.name
+            label: matchingSegment.name,
+            email: subscriber.email // Include subscriber's email
           };
         })
         .filter(Boolean); // Remove any null values
