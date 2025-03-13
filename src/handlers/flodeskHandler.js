@@ -46,31 +46,19 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
             });
           }
           try {
-            // Get all subscribers first
-            const allSubscribersResult = await subscribersService.getAllSubscribers(apiKey);
-            
-            // Find the subscriber with matching email
-            const subscriber = allSubscribersResult.data.subscribers.find(sub => 
-              sub.email.toLowerCase() === payload.email.toLowerCase()
-            );
-
-            if (!subscriber) {
-              return res.status(404).json({
-                success: false,
-                message: `Subscriber with email ${payload.email} not found`,
-                error: {
-                  code: 'not_found'
-                }
-              });
-            }
-
+            result = await subscribersService.getSubscriber(apiKey, payload.email);
             return res.json({
               success: true,
-              data: {
-                subscriber: subscriber
-              }
+              data: result.data
             });
           } catch (error) {
+            if (error.response?.status === 404) {
+              return res.status(404).json({
+                success: false,
+                message: error.response.data.message,
+                error: error.response.data
+              });
+            }
             throw error;
           }
           break;
