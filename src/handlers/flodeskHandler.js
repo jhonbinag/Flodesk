@@ -65,19 +65,19 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
         case 'removeFromSegment':
           result = await subscribersService.removeFromSegment(
             apiKey, 
-            payload.subscriberId, 
+            payload.email,
             payload.segmentId
           );
           break;
         case 'addToSegments':
           result = await subscribersService.addToSegments(
             apiKey, 
-            payload.subscriberId, 
+            payload.email,
             payload.segmentIds
           );
           break;
         case 'unsubscribeFromAll':
-          result = await subscribersService.unsubscribeFromAll(apiKey, payload.subscriberId);
+          result = await subscribersService.unsubscribeFromAll(apiKey, payload.email);
           break;
 
         // Segment actions

@@ -73,14 +73,12 @@ export const subscribersService = {
 
   async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
-    // First get the subscriber to ensure they exist
     const subscriber = await this.getSubscriber(apiKey, email);
     return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments/${segmentId}`);
   },
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    // First get the subscriber to ensure they exist
     const subscriber = await this.getSubscriber(apiKey, email);
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments`, {
       segment_ids: segmentIds
@@ -89,7 +87,6 @@ export const subscribersService = {
 
   async unsubscribeFromAll(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    // First get the subscriber to ensure they exist
     const subscriber = await this.getSubscriber(apiKey, email);
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/unsubscribe`);
   }
