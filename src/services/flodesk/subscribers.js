@@ -74,7 +74,6 @@ export const subscribersService = {
 
       // Otherwise return full subscriber data
       return {
-        success: true,
         id: subscriber.id || '',
         status: subscriber.status || 'active',
         email: subscriber.email || '',
