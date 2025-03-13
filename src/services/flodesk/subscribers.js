@@ -136,11 +136,15 @@ export const subscribersService = {
       // Make sure segment_ids is an array
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
-      return client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      // Send DELETE request with segment_ids in the body
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
           segment_ids: segmentIdsArray
         }
       });
+
+      console.log('Remove segment response:', response.data);
+      return response;
     } catch (error) {
       console.error('Error removing segments:', error);
       throw error;
