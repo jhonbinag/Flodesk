@@ -132,25 +132,24 @@ export const subscribersService = {
 
   async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
-    // Get all subscribers and find the one with matching email
-    const subscribers = await this.getAllSubscribers(apiKey);
-    const subscriber = subscribers.find(sub => 
-      sub.label.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!subscriber) {
-      throw {
-        response: {
-          status: 404,
-          data: {
-            message: `Subscriber with email ${email} not found`,
-            code: 'not_found'
+    try {
+      // Use email directly in the URL as Flodesk API supports both id and email
+      return client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments/${segmentId}`);
+    } catch (error) {
+      console.error('Error removing from segment:', error);
+      if (error.response?.status === 404) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found or segment ${segmentId} not found`,
+              code: 'not_found'
+            }
           }
-        }
-      };
+        };
+      }
+      throw error;
     }
-
-    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments/${segmentId}`);
   },
 
   async addToSegments(apiKey, email, segmentIds) {
