@@ -8,23 +8,27 @@ export const subscribersService = {
       const response = await client.get(ENDPOINTS.subscribers.base);
       
       // Add logging to debug the response
-      console.log('Flodesk Response:', {
-        hasData: !!response.data,
-        dataKeys: Object.keys(response.data || {}),
-        subscribers: response.data?.subscribers
-      });
+      console.log('Raw Flodesk Response:', response.data);
 
-      // Check if we have valid data
-      if (!response.data || !Array.isArray(response.data.subscribers)) {
-        console.error('Invalid response format:', response.data);
-        throw new Error('Invalid response format from Flodesk API');
+      // Check if we have valid data and handle different response formats
+      let subscribers = [];
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          subscribers = response.data;
+        } else if (response.data.subscribers && Array.isArray(response.data.subscribers)) {
+          subscribers = response.data.subscribers;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          subscribers = response.data.data;
+        }
       }
 
       // Transform the subscribers array into options format
-      const options = response.data.subscribers.map(subscriber => ({
-        value: subscriber.id,
+      const options = subscribers.map(subscriber => ({
+        value: subscriber.id || subscriber._id,
         label: subscriber.email
       }));
+
+      console.log('Transformed Options:', options);
 
       return {
         data: {
@@ -37,7 +41,13 @@ export const subscribersService = {
         response: error.response?.data,
         status: error.response?.status
       });
-      throw error;
+      
+      // Return empty options if there's an error
+      return {
+        data: {
+          options: []
+        }
+      };
     }
   },
 
