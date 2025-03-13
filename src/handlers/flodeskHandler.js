@@ -22,15 +22,12 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           try {
             const segments = await segmentsService.getAllSegments(apiKey);
             return res.json({
-              success: true,
-              data: segments
+              options: segments
             });
           } catch (error) {
             console.error('Error in getAllSegments:', error);
             return res.json({
-              success: false,
-              message: error.message,
-              data: []
+              options: []
             });
           }
           break;
