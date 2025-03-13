@@ -18,21 +18,30 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Get all subscribers first
-      const response = await client.get(ENDPOINTS.subscribers.base);
+      // Use the direct subscriber endpoint with email
+      const response = await client.get(`${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`);
 
-      console.log('All subscribers response:', {
-        total: response.data?.subscribers?.length,
+      console.log('Subscriber response:', {
+        status: response.status,
         data: response.data
       });
 
-      // Find the subscriber with matching email
-      const subscribers = response.data?.subscribers || [];
-      const subscriber = subscribers.find(sub => 
-        sub.email.toLowerCase() === email.toLowerCase()
-      );
+      // Return in the same format as other responses
+      return { 
+        data: {
+          subscriber: response.data
+        }
+      };
+    } catch (error) {
+      console.error('Flodesk API Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        endpoint: `${ENDPOINTS.subscribers.base}/${encodeURIComponent(email)}`
+      });
 
-      if (!subscriber) {
+      // If subscriber not found
+      if (error.response?.status === 404) {
         throw {
           response: {
             status: 404,
@@ -44,24 +53,7 @@ export const subscribersService = {
         };
       }
 
-      // Return in the same format as other responses
-      return { 
-        data: {
-          subscriber: subscriber
-        }
-      };
-    } catch (error) {
-      console.error('Flodesk API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        endpoint: ENDPOINTS.subscribers.base
-      });
-
-      if (error.response?.status === 404) {
-        throw error;
-      }
-
+      // For other errors
       throw {
         response: {
           status: error.response?.status || 500,
