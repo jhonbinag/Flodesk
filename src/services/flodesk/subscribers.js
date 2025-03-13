@@ -30,9 +30,9 @@ export const subscribersService = {
           label: subscriber.email
         }));
 
-      // Return array directly in data field
+      // Return with options key for GoHighLevel
       return {
-        data: options
+        options: options
       };
     } catch (error) {
       console.error('Error getting subscribers:', {
@@ -41,9 +41,9 @@ export const subscribersService = {
         status: error.response?.status
       });
       
-      // Return empty array on error
+      // Return empty options array on error
       return {
-        data: []
+        options: []
       };
     }
   },
