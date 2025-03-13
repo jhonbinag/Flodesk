@@ -46,19 +46,31 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
             });
           }
           try {
-            result = await subscribersService.getSubscriber(apiKey, payload.email);
-            return res.json({
-              success: true,
-              data: result.data // This will contain the raw Flodesk subscriber data
-            });
-          } catch (error) {
-            if (error.response?.status === 404) {
+            // Get all subscribers first
+            const allSubscribersResult = await subscribersService.getAllSubscribers(apiKey);
+            
+            // Find the subscriber with matching email
+            const subscriber = allSubscribersResult.data.subscribers.find(sub => 
+              sub.email.toLowerCase() === payload.email.toLowerCase()
+            );
+
+            if (!subscriber) {
               return res.status(404).json({
                 success: false,
-                message: error.response.data.message,
-                error: error.response.data
+                message: `Subscriber with email ${payload.email} not found`,
+                error: {
+                  code: 'not_found'
+                }
               });
             }
+
+            return res.json({
+              success: true,
+              data: {
+                subscriber: subscriber
+              }
+            });
+          } catch (error) {
             throw error;
           }
           break;

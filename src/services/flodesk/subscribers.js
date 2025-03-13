@@ -2,90 +2,91 @@ import { ENDPOINTS } from '../../config/constants.js';
 import { createFlodeskClient } from '../../utils/apiClient.js';
 
 export const subscribersService = {
+  async getAllSubscribers(apiKey, params = {}) {
+    const client = createFlodeskClient(apiKey);
+    const response = await client.get(ENDPOINTS.subscribers.base, { params });
+    return response;
+  },
+
+  async getSubscriber(apiKey, email) {
+    // This function is now handled in flodeskHandler.js
+    const response = await this.getAllSubscribers(apiKey);
+    return response;
+  },
+
   async createOrUpdate(apiKey, subscriberData) {
     const client = createFlodeskClient(apiKey);
     return client.post(ENDPOINTS.subscribers.base, subscriberData);
   },
 
-  async getAllSubscribers(apiKey, params = {}) {
+  async removeFromSegment(apiKey, email, segmentId) {
     const client = createFlodeskClient(apiKey);
-    return client.get(ENDPOINTS.subscribers.base, { params });
-  },
-
-  async getSubscriber(apiKey, email) {
-    const client = createFlodeskClient(apiKey);
+    // Get all subscribers and find the one with matching email
+    const response = await this.getAllSubscribers(apiKey);
+    const subscriber = response.data.subscribers.find(sub => 
+      sub.email.toLowerCase() === email.toLowerCase()
+    );
     
-    try {
-      console.log('Attempting to get subscriber by email:', { email });
-
-      // Use the same endpoint as getAllSubscribers
-      const response = await client.get(ENDPOINTS.subscribers.base);
-
-      console.log('Subscriber response:', {
-        status: response.status,
-        totalSubscribers: response.data?.subscribers?.length
-      });
-
-      // Find the exact email match
-      const subscriber = response.data?.subscribers?.find(sub => 
-        sub.email.toLowerCase() === email.toLowerCase()
-      );
-
-      if (!subscriber) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
-
-      // Return the matching subscriber
-      return { 
-        data: {
-          subscriber: subscriber
-        }
-      };
-    } catch (error) {
-      console.error('Flodesk API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        endpoint: ENDPOINTS.subscribers.base
-      });
-
+    if (!subscriber) {
       throw {
         response: {
-          status: error.response?.status || 404,
+          status: 404,
           data: {
-            message: error.response?.data?.message || `Subscriber with email ${email} not found`,
-            code: error.response?.data?.code || 'not_found'
+            message: `Subscriber with email ${email} not found`,
+            code: 'not_found'
           }
         }
       };
     }
-  },
 
-  async removeFromSegment(apiKey, email, segmentId) {
-    const client = createFlodeskClient(apiKey);
-    const subscriber = await this.getSubscriber(apiKey, email);
-    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments/${segmentId}`);
+    return client.delete(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments/${segmentId}`);
   },
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    const subscriber = await this.getSubscriber(apiKey, email);
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/segments`, {
+    // Get all subscribers and find the one with matching email
+    const response = await this.getAllSubscribers(apiKey);
+    const subscriber = response.data.subscribers.find(sub => 
+      sub.email.toLowerCase() === email.toLowerCase()
+    );
+    
+    if (!subscriber) {
+      throw {
+        response: {
+          status: 404,
+          data: {
+            message: `Subscriber with email ${email} not found`,
+            code: 'not_found'
+          }
+        }
+      };
+    }
+
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments`, {
       segment_ids: segmentIds
     });
   },
 
   async unsubscribeFromAll(apiKey, email) {
     const client = createFlodeskClient(apiKey);
-    const subscriber = await this.getSubscriber(apiKey, email);
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.data.id}/unsubscribe`);
+    // Get all subscribers and find the one with matching email
+    const response = await this.getAllSubscribers(apiKey);
+    const subscriber = response.data.subscribers.find(sub => 
+      sub.email.toLowerCase() === email.toLowerCase()
+    );
+    
+    if (!subscriber) {
+      throw {
+        response: {
+          status: 404,
+          data: {
+            message: `Subscriber with email ${email} not found`,
+            code: 'not_found'
+          }
+        }
+      };
+    }
+
+    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/unsubscribe`);
   }
 }; 

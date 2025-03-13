@@ -18,35 +18,30 @@ export const createFlodeskClient = (apiKey) => {
     timeout: 30000 // Increased timeout
   });
 
-  // Add request interceptor for logging
+  // Add request logging
   client.interceptors.request.use(config => {
-    console.log('Outgoing Request:', {
+    console.log('API Request:', {
       method: config.method,
       url: config.url,
-      headers: {
-        ...config.headers,
-        'Authorization': '[REDACTED]' // Don't log the actual API key
-      },
+      params: config.params,
       data: config.data
     });
     return config;
   });
 
-  // Add response interceptor for logging
+  // Add response logging
   client.interceptors.response.use(
     response => {
-      console.log('API Response Success:', {
+      console.log('API Response:', {
         status: response.status,
-        url: response.config.url,
         data: response.data
       });
       return response;
     },
     error => {
-      console.error('API Response Error:', {
+      console.error('API Error:', {
         status: error.response?.status,
         data: error.response?.data,
-        url: error.config?.url,
         message: error.message
       });
       throw error;
