@@ -54,23 +54,27 @@ export const subscribersService = {
 
       // Transform the response to include all required fields
       const subscriber = response.data;
+
+      // Transform segments into options format
+      const segmentOptions = (subscriber.segments || []).map(segment => ({
+        value: segment.id || '',
+        label: segment.name || ''
+      }));
+
       return {
-        data: {
-          id: subscriber.id || '',
-          status: subscriber.status || 'active',
-          email: subscriber.email || '',
-          source: subscriber.source || 'manual',
-          first_name: subscriber.first_name || '',
-          last_name: subscriber.last_name || '',
-          segments: (subscriber.segments || []).map(segment => ({
-            id: segment.id || '',
-            name: segment.name || ''
-          })),
-          custom_fields: subscriber.custom_fields || {},
-          optin_ip: subscriber.optin_ip || '',
-          optin_timestamp: subscriber.optin_timestamp || null,
-          created_at: subscriber.created_at || null
-        }
+        id: subscriber.id || '',
+        status: subscriber.status || 'active',
+        email: subscriber.email || '',
+        source: subscriber.source || 'manual',
+        first_name: subscriber.first_name || '',
+        last_name: subscriber.last_name || '',
+        segments: {
+          options: segmentOptions
+        },
+        custom_fields: subscriber.custom_fields || {},
+        optin_ip: subscriber.optin_ip || '',
+        optin_timestamp: subscriber.optin_timestamp || null,
+        created_at: subscriber.created_at || null
       };
     } catch (error) {
       console.error('Error getting subscriber:', {
