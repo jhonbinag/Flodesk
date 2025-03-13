@@ -137,8 +137,8 @@ export const subscribersService = {
       
       console.log('Removing segments:', { email, segmentIds: segmentIdsArray });
       
-      // Make direct request to remove segments
-      const response = await client.delete(`/subscribers/${email}/segments`, {
+      // Use the full path from ENDPOINTS
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
           segment_ids: segmentIdsArray
         }
@@ -150,7 +150,8 @@ export const subscribersService = {
       console.error('Error removing segments:', {
         status: error.response?.status,
         data: error.response?.data,
-        url: error.config?.url
+        url: error.config?.url,
+        method: error.config?.method
       });
       throw error;
     }
