@@ -22,19 +22,17 @@ export const subscribersService = {
         }
       }
 
-      // Transform into exact format needed
-      const options = subscribers.map(subscriber => ({
-        label: subscriber.email || '', // Use email as label
-        value: subscriber.id || subscriber._id || '' // Use ID as value
-      })).filter(option => option.label && option.value); // Remove any invalid entries
+      // Transform into array of value-label pairs
+      const options = subscribers
+        .filter(subscriber => subscriber.email && (subscriber.id || subscriber._id))
+        .map(subscriber => ({
+          value: subscriber.id || subscriber._id,
+          label: subscriber.email
+        }));
 
-      console.log('Transformed Options:', options);
-
-      // Return in exact format requested
+      // Return array directly in data field
       return {
-        data: {
-          options: options
-        }
+        data: options
       };
     } catch (error) {
       console.error('Error getting subscribers:', {
@@ -43,11 +41,9 @@ export const subscribersService = {
         status: error.response?.status
       });
       
-      // Return empty options array on error
+      // Return empty array on error
       return {
-        data: {
-          options: []
-        }
+        data: []
       };
     }
   },
