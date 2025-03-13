@@ -17,33 +17,59 @@ export const segmentsService = {
         segments = response.data.data;
       } else if (Array.isArray(response.data)) {
         segments = response.data;
+      } else if (response.data?.segments && Array.isArray(response.data.segments)) {
+        segments = response.data.segments;
       }
+
+      // Log what we found
+      console.log('Parsed Segments:', segments);
 
       // Transform segments and fetch subscribers for each
       const segmentsWithSubscribers = await Promise.all(
         segments
-          .filter(segment => segment.id && segment.name)
+          .filter(segment => {
+            // Log any segments being filtered out
+            if (!segment.id || !segment.name) {
+              console.log('Filtered out segment:', segment);
+            }
+            return segment.id && segment.name;
+          })
           .map(async segment => {
-            // Get subscribers for this segment
-            const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segment.id}/subscribers`);
-            
-            // Transform subscribers into value-label pairs
-            const subscribers = (subscribersResponse.data?.subscribers || []).map(sub => ({
-              value: sub.id || '',
-              label: sub.email || ''
-            }));
+            try {
+              // Get subscribers for this segment
+              const subscribersResponse = await client.get(`${ENDPOINTS.segments.base}/${segment.id}/subscribers`);
+              console.log(`Subscribers for segment ${segment.id}:`, subscribersResponse.data);
+              
+              // Transform subscribers into value-label pairs
+              const subscribers = (subscribersResponse.data?.subscribers || []).map(sub => ({
+                value: sub.id || '',
+                label: sub.email || ''
+              }));
 
-            return {
-              value: segment.id,
-              label: segment.name,
-              subscribers: {
-                options: subscribers
-              }
-            };
+              return {
+                value: segment.id,
+                label: segment.name,
+                subscribers: {
+                  options: subscribers
+                }
+              };
+            } catch (subscriberError) {
+              console.error(`Error getting subscribers for segment ${segment.id}:`, subscriberError);
+              // Return segment without subscribers on error
+              return {
+                value: segment.id,
+                label: segment.name,
+                subscribers: {
+                  options: []
+                }
+              };
+            }
           })
       );
 
+      console.log('Final segments with subscribers:', segmentsWithSubscribers);
       return segmentsWithSubscribers;
+
     } catch (error) {
       console.error('Error getting segments:', {
         error: error.message,
@@ -51,7 +77,7 @@ export const segmentsService = {
         status: error.response?.status
       });
       
-      return [];
+      throw error; // Let the handler deal with the error
     }
   },
 
