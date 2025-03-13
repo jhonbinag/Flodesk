@@ -19,7 +19,17 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
       switch (action) {
         case 'getAllSegments':
           console.log('Getting all segments...');
-          result = await segmentsService.getAllSegments(apiKey, payload);
+          try {
+            const segments = await segmentsService.getAllSegments(apiKey);
+            return res.json({
+              options: segments
+            });
+          } catch (error) {
+            console.error('Error in getAllSegments:', error);
+            return res.json({
+              options: []
+            });
+          }
           break;
           
         case 'createOrUpdateSubscriber':
