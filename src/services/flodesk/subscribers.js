@@ -18,18 +18,25 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Use the search endpoint to find subscriber by email
-      const response = await client.get(`${ENDPOINTS.subscribers.base}`, {
+      // Get all subscribers with email filter
+      const response = await client.get(ENDPOINTS.subscribers.base, {
         params: {
-          email: email,
-          limit: 1 // Only get one result
+          email: email // This will filter on Flodesk's side
         }
       });
 
-      console.log('Search response:', response.data);
+      console.log('Search response:', {
+        total: response.data?.subscribers?.length,
+        data: response.data
+      });
 
       // Check if we got any results
-      if (!response.data?.subscribers?.length) {
+      const subscribers = response.data?.subscribers || [];
+      const exactMatch = subscribers.find(sub => 
+        sub.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!exactMatch) {
         throw {
           response: {
             status: 404,
@@ -41,16 +48,17 @@ export const subscribersService = {
         };
       }
 
-      // Return the first (and should be only) matching subscriber
+      // Return the exact matching subscriber
       return { 
-        data: response.data.subscribers[0]
+        data: exactMatch
       };
     } catch (error) {
       console.error('Flodesk API Error:', {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
-        endpoint: `${ENDPOINTS.subscribers.base}?email=${email}`
+        endpoint: `${ENDPOINTS.subscribers.base}`,
+        params: { email }
       });
 
       // If it's already our custom 404 error, throw it as is
