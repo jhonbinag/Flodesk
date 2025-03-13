@@ -18,21 +18,20 @@ export const subscribersService = {
     try {
       console.log('Attempting to get subscriber by email:', { email });
 
-      // Get all subscribers with email filter in query params
-      const response = await client.get(ENDPOINTS.subscribers.base, {
-        params: {
-          email: email,
-          per_page: 1 // Limit to 1 result since we're looking for a specific email
-        }
-      });
+      // Use the same endpoint as getAllSubscribers
+      const response = await client.get(ENDPOINTS.subscribers.base);
 
       console.log('Subscriber response:', {
         status: response.status,
-        data: response.data
+        totalSubscribers: response.data?.subscribers?.length
       });
 
-      // Check if we got any subscribers
-      if (!response.data?.subscribers?.length) {
+      // Find the exact email match
+      const subscriber = response.data?.subscribers?.find(sub => 
+        sub.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!subscriber) {
         throw {
           response: {
             status: 404,
@@ -44,10 +43,10 @@ export const subscribersService = {
         };
       }
 
-      // Return the first subscriber that matches
+      // Return the matching subscriber
       return { 
         data: {
-          subscriber: response.data.subscribers[0]
+          subscriber: subscriber
         }
       };
     } catch (error) {
@@ -55,28 +54,15 @@ export const subscribersService = {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
-        endpoint: ENDPOINTS.subscribers.base,
-        params: { email }
+        endpoint: ENDPOINTS.subscribers.base
       });
-
-      if (error.response?.status === 404 || !error.response) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
 
       throw {
         response: {
-          status: error.response?.status || 500,
+          status: error.response?.status || 404,
           data: {
-            message: error.response?.data?.message || 'Failed to get subscriber',
-            code: error.response?.data?.code || 'error'
+            message: error.response?.data?.message || `Subscriber with email ${email} not found`,
+            code: error.response?.data?.code || 'not_found'
           }
         }
       };
