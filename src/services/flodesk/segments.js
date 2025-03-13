@@ -27,7 +27,6 @@ export const segmentsService = {
           label: segment.name
         }));
 
-      // Return just the options array
       return options;
     } catch (error) {
       console.error('Error getting segments:', {
@@ -36,14 +35,51 @@ export const segmentsService = {
         status: error.response?.status
       });
       
-      // Return empty array on error
       return [];
     }
   },
 
   async getSegment(apiKey, segmentId) {
     const client = createFlodeskClient(apiKey);
-    return client.get(`${ENDPOINTS.segments.base}/${segmentId}`);
+    try {
+      const response = await client.get(`${ENDPOINTS.segments.base}/${segmentId}`);
+      
+      console.log('Raw Segment Response:', response.data);
+
+      const segment = response.data;
+
+      return {
+        success: true,
+        id: segment.id || '',
+        name: segment.name || '',
+        total_active_subscribers: segment.total_active_subscribers || 0,
+        created_at: segment.created_at || null,
+        options: [{
+          value: segment.id || '',
+          label: segment.name || ''
+        }]
+      };
+    } catch (error) {
+      console.error('Error getting segment:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
+      if (error.response?.status === 404) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Segment with id ${segmentId} not found`,
+              code: 'not_found'
+            }
+          }
+        };
+      }
+
+      throw error;
+    }
   },
 
   async getSegmentSubscribers(apiKey, segmentId) {

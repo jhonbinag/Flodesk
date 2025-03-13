@@ -165,16 +165,30 @@ apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
 });
 
 // Segment Endpoints
-// 1. Get All Segments
+// 1. Get All Segments or Specific Segment
 // GET https://flodeskendpoints.vercel.app/api/segments
+// GET https://flodeskendpoints.vercel.app/api/segments?id=segment_id
 apiRouter.get('/segments', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
-    await handleFlodeskAction(req, res, {
-      action: 'getAllSegments',
-      apiKey,
-      payload: {}
-    });
+    // Check if we have an id query parameter
+    if (req.query.id) {
+      // If we have an id, get specific segment
+      await handleFlodeskAction(req, res, {
+        action: 'getSegment',
+        apiKey,
+        payload: { 
+          segmentId: req.query.id
+        }
+      });
+    } else {
+      // Otherwise get all segments
+      await handleFlodeskAction(req, res, {
+        action: 'getAllSegments',
+        apiKey,
+        payload: {}
+      });
+    }
   } catch (error) {
     console.error('Server Error:', error);
     res.status(500).json({
