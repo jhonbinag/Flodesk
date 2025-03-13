@@ -62,12 +62,18 @@ export const subscribersService = {
       // If only segments are requested, return in options format
       if (segmentsOnly) {
         return {
-          options: segments
+          success: true,
+          id: subscriber.id || '',
+          email: subscriber.email || '',
+          first_name: subscriber.first_name || '',
+          last_name: subscriber.last_name || '',
+          options: segments // For dropdown
         };
       }
 
       // Otherwise return full subscriber data
       return {
+        success: true,
         id: subscriber.id || '',
         status: subscriber.status || 'active',
         email: subscriber.email || '',
