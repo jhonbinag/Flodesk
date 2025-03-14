@@ -205,6 +205,59 @@ apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
   }
 });
 
+// Update subscriber segments
+// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments/update
+apiRouter.post('/subscribers/:email/segments/update', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        message: 'API key is required in Authorization header'
+      });
+    }
+
+    const email = decodeURIComponent(req.params.email);
+    const segmentIds = req.body.segment_ids;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    if (!segmentIds || !Array.isArray(segmentIds) || segmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'segment_ids array is required in request body'
+      });
+    }
+
+    await handleFlodeskAction(req, res, {
+      action: 'updateSubscriberSegments',
+      apiKey,
+      payload: { 
+        email, 
+        segment_ids: segmentIds
+      }
+    });
+
+    return res.json({
+      success: true,
+      message: `Successfully updated segments for ${email}`
+    });
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    return res.status(error.response?.status || 500).json({
+      success: false,
+      message: error.response?.data?.message || 'Failed to update segments',
+      error: error.response?.data || error.message
+    });
+  }
+});
+
 // Segment Endpoints
 // 1. Get All Segments or Specific Segment by Email
 // GET https://flodeskendpoints.vercel.app/api/segments
