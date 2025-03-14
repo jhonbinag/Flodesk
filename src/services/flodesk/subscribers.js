@@ -152,8 +152,7 @@ export const subscribersService = {
 
       // POST request to update segments
       const response = await client.post(`${ENDPOINTS.subscribers.base}/${email}/segments/update`, {
-        segment_ids: segmentIdsArray,
-        action: 'remove'  // Specify we want to remove these segments
+        segment_ids: segmentIdsArray
       });
 
       return response;
