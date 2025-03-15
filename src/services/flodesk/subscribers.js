@@ -133,23 +133,8 @@ export const subscribersService = {
   async updateSubscriberSegments(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Handle both single ID and array of IDs
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
-      // Validate segment IDs format
-      const isValidSegmentId = id => /^[0-9a-fA-F]{24}$/.test(id);
-      if (!segmentIdsArray.every(isValidSegmentId)) {
-        throw {
-          response: {
-            status: 400,
-            data: {
-              message: "Invalid segment ID format",
-              code: "validation_error"
-            }
-          }
-        };
-      }
-
       // PATCH request to update segments
       const response = await client.patch(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         segment_ids: segmentIdsArray
@@ -208,5 +193,24 @@ export const subscribersService = {
     }
 
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
+  },
+
+  async removeFromSegment(apiKey, email, segment_ids) {
+    const client = createFlodeskClient(apiKey);
+    try {
+      const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
+      
+      // DELETE request with body
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        data: {
+          segment_ids: segmentIdsArray
+        }
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error removing segments:', error);
+      throw error;
+    }
   }
 }; 
