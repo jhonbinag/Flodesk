@@ -150,8 +150,8 @@ export const subscribersService = {
         };
       }
 
-      // POST request to update segments
-      const response = await client.post(`${ENDPOINTS.subscribers.base}/${email}/segments/update`, {
+      // PATCH request to update segments
+      const response = await client.patch(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         segment_ids: segmentIdsArray
       });
 

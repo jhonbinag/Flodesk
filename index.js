@@ -206,8 +206,8 @@ apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
 });
 
 // Update subscriber segments
-// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments/update
-apiRouter.post('/subscribers/:email/segments/update', async (req, res) => {
+// PATCH https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+apiRouter.patch('/subscribers/:email/segments', async (req, res) => {
   try {
     const apiKey = req.headers.authorization;
     if (!apiKey) {
