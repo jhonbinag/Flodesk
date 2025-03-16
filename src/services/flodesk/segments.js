@@ -117,5 +117,39 @@ export const segmentsService = {
   async getSegmentSubscribers(apiKey, segmentId) {
     const client = createFlodeskClient(apiKey);
     return client.get(`${ENDPOINTS.segments.base}/${segmentId}/subscribers`);
+  },
+
+  async createSegment(apiKey, segmentData) {
+    const client = createFlodeskClient(apiKey);
+    try {
+      // Validate required fields
+      if (!segmentData.name) {
+        throw {
+          response: {
+            status: 400,
+            data: {
+              message: "Segment name is required",
+              code: "validation_error"
+            }
+          }
+        };
+      }
+
+      // POST request to create segment
+      const response = await client.post(ENDPOINTS.segments.base, {
+        name: segmentData.name,
+        description: segmentData.description || ''
+      });
+
+      // Transform response to match our format
+      const segment = response.data;
+      return {
+        value: segment.id,
+        label: segment.name
+      };
+    } catch (error) {
+      console.error('Error creating segment:', error.response?.data || error.message);
+      throw error;
+    }
   }
 }; 
