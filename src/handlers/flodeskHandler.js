@@ -133,22 +133,6 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           }
           break;
 
-        case 'createSegment':
-          if (!payload.name) {
-            return res.status(400).json({
-              success: false,
-              message: 'Segment name is required'
-            });
-          }
-          result = await segmentsService.createSegment(
-            apiKey, 
-            {
-              name: payload.name,
-              description: payload.description
-            }
-          );
-          break;
-
         default:
           return res.status(400).json({ 
             success: false, 

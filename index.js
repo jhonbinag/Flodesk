@@ -297,50 +297,6 @@ apiRouter.get('/segments', async (req, res) => {
   }
 });
 
-// Create new segment
-// POST https://flodeskendpoints.vercel.app/api/segments
-apiRouter.post('/segments', async (req, res) => {
-  try {
-    const apiKey = req.headers.authorization;
-    if (!apiKey) {
-      return res.status(401).json({
-        success: false,
-        message: 'API key is required in Authorization header'
-      });
-    }
-
-    const { name, description } = req.body;
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: 'Segment name is required'
-      });
-    }
-
-    await handleFlodeskAction(req, res, {
-      action: 'createSegment',
-      apiKey,
-      payload: { 
-        name,
-        description
-      }
-    });
-
-    return res.json({
-      success: true,
-      message: `Successfully created segment "${name}"`
-    });
-
-  } catch (error) {
-    console.error('Server Error:', error);
-    return res.status(error.response?.status || 500).json({
-      success: false,
-      message: error.response?.data?.message || 'Failed to create segment',
-      error: error.response?.data || error.message
-    });
-  }
-});
-
 // Mount API routes at /api
 app.use('/api', apiRouter);
 
