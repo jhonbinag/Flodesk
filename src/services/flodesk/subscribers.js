@@ -142,7 +142,7 @@ export const subscribersService = {
 
       return response;
     } catch (error) {
-      console.error('Error updating segments:', error);
+      console.error('Error updating the segments:', error);
       throw error;
     }
   },
