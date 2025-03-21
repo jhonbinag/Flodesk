@@ -212,5 +212,41 @@ export const subscribersService = {
       console.error('Error removing segments:', error);
       throw error;
     }
+  },
+
+  async getCustomFields(apiKey) {
+    const client = createFlodeskClient(apiKey);
+    try {
+      // Get a subscriber to see available custom fields
+      const response = await client.get(ENDPOINTS.subscribers.base);
+      
+      let subscribers = [];
+      if (response.data?.data?.data) {
+        subscribers = response.data.data.data;
+      } else if (response.data?.data) {
+        subscribers = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        subscribers = response.data;
+      }
+
+      // Collect all unique custom field keys
+      const customFields = new Set();
+      subscribers.forEach(subscriber => {
+        if (subscriber.custom_fields) {
+          Object.keys(subscriber.custom_fields).forEach(key => customFields.add(key));
+        }
+      });
+
+      // Transform to required format
+      const options = Array.from(customFields).map(field => ({
+        key: field,
+        label: field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      }));
+
+      return options;
+    } catch (error) {
+      console.error('Error getting custom fields:', error);
+      throw error;
+    }
   }
 }; 
