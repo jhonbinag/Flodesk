@@ -6,7 +6,7 @@ export const subscribersService = {
   async getAllSubscribers(apiKey) {
     const client = createFlodeskClient(apiKey);
     try {
-      const response = await client.get(ENDPOINTS.subscribers.base);
+      const response = await client.get(`/api${ENDPOINTS.subscribers.base}`);
       
       // Add logging to debug the response
       console.log('Raw Flodesk Response:', response.data);
@@ -53,7 +53,7 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     try {
       // Get subscriber details
-      const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
+      const response = await client.get(`/api${ENDPOINTS.subscribers.base}/${email}`);
       console.log('Raw Subscriber Response:', response.data);
       const subscriber = response.data;
 
@@ -71,7 +71,7 @@ export const subscribersService = {
       }
 
       // Get all segments to match with subscriber's segments
-      const segmentsResponse = await client.get(ENDPOINTS.segments.base);
+      const segmentsResponse = await client.get(`/api${ENDPOINTS.segments.base}`);
       let allSegments = [];
       if (segmentsResponse.data?.data?.data) {
         allSegments = segmentsResponse.data.data.data;
@@ -127,7 +127,7 @@ export const subscribersService = {
 
   async createOrUpdate(apiKey, subscriberData) {
     const client = createFlodeskClient(apiKey);
-    return client.post(ENDPOINTS.subscribers.base, subscriberData);
+    return client.post(`/api${ENDPOINTS.subscribers.base}`, subscriberData);
   },
 
   async updateSubscriberSegments(apiKey, email, segment_ids) {
@@ -136,7 +136,7 @@ export const subscribersService = {
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
       // PATCH request to update segments
-      const response = await client.patch(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      const response = await client.patch(`/api${ENDPOINTS.subscribers.base}/${email}/segments`, {
         segment_ids: segmentIdsArray
       });
 
@@ -167,7 +167,7 @@ export const subscribersService = {
       };
     }
 
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
+    return client.post(`/api${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
       segment_ids: segmentIds
     });
   },
@@ -192,7 +192,7 @@ export const subscribersService = {
       };
     }
 
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
+    return client.post(`/api${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
   },
 
   async removeFromSegment(apiKey, email, segment_ids) {
@@ -201,7 +201,7 @@ export const subscribersService = {
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
       // DELETE request with body
-      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      const response = await client.delete(`/api${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
           segment_ids: segmentIdsArray
         }
@@ -218,7 +218,7 @@ export const subscribersService = {
     const client = createFlodeskClient(apiKey);
     try {
       // Get a subscriber to see available custom fields
-      const response = await client.get(ENDPOINTS.subscribers.base);
+      const response = await client.get(`/api${ENDPOINTS.subscribers.base}`);
       
       let subscribers = [];
       if (response.data?.data?.data) {
