@@ -185,7 +185,7 @@ export const subscribersService = {
         response: {
           status: 404,
           data: {
-            message: `Subscriber with email ${email} not found`,
+            message: `Subscriber with email ${email} not found!`,
             code: 'not_found'
           }
         }
