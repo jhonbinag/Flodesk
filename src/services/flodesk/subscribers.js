@@ -222,10 +222,8 @@ export const subscribersService = {
         throw new Error('segment_ids must be a non-empty array');
       }
 
-      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {
-          segment_ids: segmentIdsArray  // Changed back to segment_ids to match addToSegments
-        }
+      const response = await client.patch(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        segment_ids: segmentIdsArray  // Using PATCH instead of DELETE
       });
 
       return response;
