@@ -168,7 +168,7 @@ export const subscribersService = {
     }
 
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
-      segment_ids: segmentIds
+      segment_ids: segmentIds  // Keep this as segment_ids since it's working
     });
   },
 
@@ -219,12 +219,12 @@ export const subscribersService = {
       
       // Make sure we have a valid array
       if (!Array.isArray(segmentIdsArray) || segmentIdsArray.length === 0) {
-        throw new Error('segmentIds must be a non-empty array');
+        throw new Error('segment_ids must be a non-empty array');
       }
 
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segmentIds: segmentIdsArray  // Changed from segment_ids to segmentIds
+          segment_ids: segmentIdsArray  // Changed back to segment_ids to match addToSegments
         }
       });
 
