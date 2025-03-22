@@ -198,28 +198,25 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Ensure we have an array of segment IDs
+      // For GHL marketplace action, the input will be a string that needs to be parsed
       let segmentIdsArray;
       
-      // If input is from GHL marketplace action
       if (typeof segment_ids === 'string') {
+        // If it's a string, try to parse it as JSON
         try {
-          // Try to parse if it's a JSON string from GHL
-          const parsed = JSON.parse(segment_ids);
-          // Ensure we have an array
-          segmentIdsArray = Array.isArray(parsed) ? parsed : [parsed];
+          segmentIdsArray = [segment_ids]; // Wrap single string in array
         } catch {
-          // If parsing fails, treat as single segment ID
           segmentIdsArray = [segment_ids];
         }
       } else {
-        // Handle non-string input
+        // If it's already an array, use it directly
         segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       }
 
+      // Match the exact format that works in Postman
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray
+          segment_ids: segmentIdsArray // Exactly matches Postman format
         }
       });
 
