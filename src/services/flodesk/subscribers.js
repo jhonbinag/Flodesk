@@ -201,10 +201,10 @@ export const subscribersService = {
       // Always ensure segment_ids is an array
       const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       
-      // DELETE request with body
+      // DELETE request with body - using segment_ids instead of segmentIds
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray // Must be an array, even for a single ID
+          segment_ids: segmentIdsArray // Note: must be "segment_ids", not "segmentIds"
         }
       });
 
