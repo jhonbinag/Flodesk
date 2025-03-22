@@ -219,12 +219,12 @@ export const subscribersService = {
       
       // Make sure we have a valid array
       if (!Array.isArray(segmentIdsArray) || segmentIdsArray.length === 0) {
-        throw new Error('segment_ids must be a non-empty array');
+        throw new Error('segmentIds must be a non-empty array');
       }
 
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray // Must be array format
+          segmentIds: segmentIdsArray  // Changed from segment_ids to segmentIds
         }
       });
 
