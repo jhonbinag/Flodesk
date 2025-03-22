@@ -216,14 +216,11 @@ export const subscribersService = {
         // Handle non-string input
         segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       }
-      
-      // Make sure we have a valid array
-      if (!Array.isArray(segmentIdsArray) || segmentIdsArray.length === 0) {
-        throw new Error('segment_ids must be a non-empty array');
-      }
 
-      const response = await client.patch(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        segment_ids: segmentIdsArray  // Using PATCH instead of DELETE
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        data: {
+          segment_ids: segmentIdsArray
+        }
       });
 
       return response;
