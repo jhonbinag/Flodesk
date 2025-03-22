@@ -212,7 +212,7 @@ export const subscribersService = {
         segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       }
       
-      const response = await client.delete(`/api${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
           segment_ids: segmentIdsArray
         }
