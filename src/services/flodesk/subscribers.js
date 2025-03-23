@@ -155,8 +155,8 @@ export const subscribersService = {
 
       // Make request according to API docs
       return client.post(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {  // Wrap in data object
-          segment_ids: segmentIdsArray  // API requires segment_ids array
+        data: {
+          SegmentIDs: segmentIdsArray  // Changed from segment_ids to SegmentIDs
         }
       });
     } catch (error) {
