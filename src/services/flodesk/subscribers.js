@@ -219,7 +219,7 @@ export const subscribersService = {
       // Match the exact format that works in Postman
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray // Exactly matches Postman format
+          segmentIds: segmentIdsArray // Changed from segment_ids to segmentIds
         }
       });
 
