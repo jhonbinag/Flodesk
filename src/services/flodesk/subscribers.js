@@ -150,28 +150,12 @@ export const subscribersService = {
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
     try {
-      // Get subscriber details directly using email
-      const subscriberResponse = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
-      const subscriber = subscriberResponse.data;
-      
-      if (!subscriber || !subscriber.id) {
-        throw {
-          response: {
-            status: 404,
-            data: {
-              message: `Subscriber with email ${email} not found`,
-              code: 'not_found'
-            }
-          }
-        };
-      }
-
-      // Ensure segmentIds is an array
+      // Ensure segmentIds is an array as required by API
       const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
 
-      // Use subscriber.id instead of subscriber.value
-      return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments`, {
-        segment_ids: segmentIdsArray  // Using segment_ids format from API docs
+      // Make request according to API docs
+      return client.post(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        segment_ids: segmentIdsArray  // API requires segment_ids array
       });
     } catch (error) {
       console.error('Error adding to segments:', error);
