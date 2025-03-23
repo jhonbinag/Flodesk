@@ -155,9 +155,7 @@ export const subscribersService = {
 
       // Make request according to API docs
       return client.post(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
-        data: {
-          SegmentIDs: segmentIdsArray  // Changed from segment_ids to SegmentIDs
-        }
+        segment_Ids: segmentIdsArray  // Changed to segment_Ids with capital I
       });
     } catch (error) {
       console.error('Error adding to segments:', error);
