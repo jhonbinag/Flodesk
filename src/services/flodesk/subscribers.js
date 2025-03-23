@@ -167,8 +167,11 @@ export const subscribersService = {
       };
     }
 
+    // Ensure segmentIds is an array
+    const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
+
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
-      segment_ids: segmentIds  // Keep this as segment_ids since it's working
+      segment_ids: segmentIdsArray  // Ensure consistent format with array
     });
   },
 
