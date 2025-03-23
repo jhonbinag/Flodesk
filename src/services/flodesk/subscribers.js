@@ -149,30 +149,34 @@ export const subscribersService = {
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    // Get all subscribers and find the one with matching email
-    const subscribers = await this.getAllSubscribers(apiKey);
-    const subscriber = subscribers.find(sub => 
-      sub.label.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!subscriber) {
-      throw {
-        response: {
-          status: 404,
-          data: {
-            message: `Subscriber with email ${email} not found`,
-            code: 'not_found'
+    try {
+      // Get subscriber details directly using email
+      const subscriberResponse = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
+      const subscriber = subscriberResponse.data;
+      
+      if (!subscriber || !subscriber.id) {
+        throw {
+          response: {
+            status: 404,
+            data: {
+              message: `Subscriber with email ${email} not found`,
+              code: 'not_found'
+            }
           }
-        }
-      };
+        };
+      }
+
+      // Ensure segmentIds is an array
+      const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
+
+      // Use subscriber.id instead of subscriber.value
+      return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.id}/segments`, {
+        segment_ids: segmentIdsArray  // Using segment_ids format from API docs
+      });
+    } catch (error) {
+      console.error('Error adding to segments:', error);
+      throw error;
     }
-
-    // Ensure segmentIds is an array
-    const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
-
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
-      segment_ids: segmentIdsArray  // Using segment_ids format from API docs
-    });
   },
 
   async unsubscribeFromAll(apiKey, email) {
