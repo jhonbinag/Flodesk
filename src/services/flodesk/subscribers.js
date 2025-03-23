@@ -171,7 +171,7 @@ export const subscribersService = {
     const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
 
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
-      segment_ids: segmentIdsArray  // Ensure consistent format with array
+      segment_ids: segmentIdsArray  // Using segment_ids format from API docs
     });
   },
 
@@ -216,10 +216,10 @@ export const subscribersService = {
         segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
       }
 
-      // Match the exact format that works in Postman
+      // Match the exact format from API docs
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          SegmentIDs: segmentIdsArray // Changed to match exact case: SegmentIDs
+          segment_ids: segmentIdsArray // Using segment_ids format from API docs
         }
       });
 
