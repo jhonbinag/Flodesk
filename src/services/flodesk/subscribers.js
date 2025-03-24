@@ -207,10 +207,8 @@ export const subscribersService = {
           console.log('Single segment_id:', segmentIdsArray);
         }
       } else if (Array.isArray(segment_ids)) {
-        // If it's already an array, use it directly
         segmentIdsArray = segment_ids;
       } else {
-        // For any other type, wrap in array
         segmentIdsArray = [segment_ids];
       }
 
@@ -227,7 +225,7 @@ export const subscribersService = {
 
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray
+          segment_ids: segmentIdsArray  // Changed back to match API docs
         }
       });
 
