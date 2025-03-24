@@ -189,24 +189,45 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      // For GHL marketplace action, the input will be a string that needs to be parsed
+      // Log the incoming data to debug
+      console.log('Incoming segment_ids:', segment_ids);
+      
       let segmentIdsArray;
       
+      // Handle GHL marketplace action input
       if (typeof segment_ids === 'string') {
-        // If it's a string, try to parse it as JSON
         try {
-          segmentIdsArray = [segment_ids]; // Wrap single string in array
+          // If it's a JSON string, parse it
+          const parsed = JSON.parse(segment_ids);
+          segmentIdsArray = Array.isArray(parsed) ? parsed : [parsed];
+          console.log('Parsed segment_ids:', segmentIdsArray);
         } catch {
+          // If parsing fails, it might be a single ID
           segmentIdsArray = [segment_ids];
+          console.log('Single segment_id:', segmentIdsArray);
         }
-      } else {
+      } else if (Array.isArray(segment_ids)) {
         // If it's already an array, use it directly
-        segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
+        segmentIdsArray = segment_ids;
+      } else {
+        // For any other type, wrap in array
+        segmentIdsArray = [segment_ids];
       }
+
+      // Validate array is not empty
+      if (!segmentIdsArray || !segmentIdsArray.length) {
+        throw new Error('segment_ids array cannot be empty');
+      }
+
+      console.log('Final request body:', {
+        data: {
+          segment_ids: segmentIdsArray
+        }
+      });
 
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray // Changed back to segment_ids (with underscore)
+          segment_ids: segmentIdsArray
         }
       });
 
