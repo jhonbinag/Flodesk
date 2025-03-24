@@ -203,13 +203,13 @@ export const subscribersService = {
           console.log('Parsed segment_ids:', segmentIdsArray);
         } catch {
           // If parsing fails, it might be a single ID
-          segmentIdsArray = [segment_ids];
+          segmentIdsArray = segment_ids;
           console.log('Single segment_id:', segmentIdsArray);
         }
       } else if (Array.isArray(segment_ids)) {
         segmentIdsArray = segment_ids;
       } else {
-        segmentIdsArray = [segment_ids];
+        segmentIdsArray = segment_ids;
       }
 
       // Validate array is not empty
