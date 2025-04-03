@@ -297,6 +297,32 @@ apiRouter.get('/segments', async (req, res) => {
   }
 });
 
+// Get Custom Fields
+// GET https://flodeskendpoints.vercel.app/api/custom-fields
+apiRouter.get('/custom-fields', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    if (!apiKey) {
+      return res.status(401).json({
+        success: false,
+        message: 'API key is required in Authorization header'
+      });
+    }
+
+    await handleFlodeskAction(req, res, {
+      action: 'getCustomFields',
+      apiKey,
+      payload: {}
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    return res.status(500).json({
+      options: [],
+      error: error.message
+    });
+  }
+});
+
 // Mount API routes at /api
 app.use('/api', apiRouter);
 

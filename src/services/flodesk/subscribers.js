@@ -149,27 +149,18 @@ export const subscribersService = {
 
   async addToSegments(apiKey, email, segmentIds) {
     const client = createFlodeskClient(apiKey);
-    // Get all subscribers and find the one with matching email
-    const subscribers = await this.getAllSubscribers(apiKey);
-    const subscriber = subscribers.find(sub => 
-      sub.label.toLowerCase() === email.toLowerCase()
-    );
-    
-    if (!subscriber) {
-      throw {
-        response: {
-          status: 404,
-          data: {
-            message: `Subscriber with email ${email} not found`,
-            code: 'not_found'
-          }
-        }
-      };
-    }
+    try {
+      // Ensure segmentIds is an array as required by API
+      const segmentIdsArray = Array.isArray(segmentIds) ? segmentIds : [segmentIds];
 
-    return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/segments`, {
-      segment_ids: segmentIds
-    });
+      // Make request according to API docs
+      return client.post(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        segment_Ids: segmentIdsArray  // Changed to segment_Ids with capital I
+      });
+    } catch (error) {
+      console.error('Error adding to segments:', error);
+      throw error;
+    }
   },
 
   async unsubscribeFromAll(apiKey, email) {
@@ -185,7 +176,7 @@ export const subscribersService = {
         response: {
           status: 404,
           data: {
-            message: `Subscriber with email ${email} not found`,
+            message: `Subscriber with email ${email} not found!`,
             code: 'not_found'
           }
         }
@@ -198,18 +189,85 @@ export const subscribersService = {
   async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
-      const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
+      // Log the incoming data to debug
+      console.log('Incoming segment_ids:', segment_ids);
       
-      // DELETE request with body
-      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+      let segmentIdsArray;
+      
+      // Handle GHL marketplace action input
+      if (typeof segment_ids === 'string') {
+        try {
+          // If it's a JSON string, parse it
+          const parsed = JSON.parse(segment_ids);
+          segmentIdsArray = Array.isArray(parsed) ? parsed : [parsed];
+          console.log('Parsed segment_ids:', segmentIdsArray);
+        } catch {
+          // If parsing fails, it might be a single ID
+          segmentIdsArray = [segment_ids];
+          console.log('Single segment_id:', segmentIdsArray);
+        }
+      } else if (Array.isArray(segment_ids)) {
+        segmentIdsArray = segment_ids;
+      } else {
+        segmentIdsArray = [segment_ids];
+      }
+
+      // Validate array is not empty
+      if (!segmentIdsArray || !segmentIdsArray.length) {
+        throw new Error('segment_ids array cannot be empty');
+      }
+
+      console.log('Final request body:', {
         data: {
           segment_ids: segmentIdsArray
+        }
+      });
+
+      const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
+        data: {
+          segment_ids: segmentIdsArray  // Changed back to match API docs
         }
       });
 
       return response;
     } catch (error) {
       console.error('Error removing segments:', error);
+      throw error;
+    }
+  },
+
+  async getCustomFields(apiKey) {
+    const client = createFlodeskClient(apiKey);
+    try {
+      // Get a subscriber to see available custom fields
+      const response = await client.get(ENDPOINTS.subscribers.base);
+      
+      let subscribers = [];
+      if (response.data?.data?.data) {
+        subscribers = response.data.data.data;
+      } else if (response.data?.data) {
+        subscribers = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        subscribers = response.data;
+      }
+
+      // Collect all unique custom field keys
+      const customFields = new Set();
+      subscribers.forEach(subscriber => {
+        if (subscriber.custom_fields) {
+          Object.keys(subscriber.custom_fields).forEach(key => customFields.add(key));
+        }
+      });
+
+      // Transform to required format
+      const options = Array.from(customFields).map(field => ({
+        key: field,
+        label: field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      }));
+
+      return options;
+    } catch (error) {
+      console.error('Error getting custom fields:', error);
       throw error;
     }
   }
