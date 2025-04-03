@@ -64,7 +64,7 @@ apiRouter.get('/health', (_, res) => {
 
 // Subscriber Endpoints
 // 1. Get All Subscribers
-// GET https://flodeskendpoints.vercel.app/api/subscribers
+// GET https://flodesk.vercel.app/api/subscribers
 apiRouter.get('/subscribers', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -136,7 +136,7 @@ apiRouter.get('/subscribers/:email', async (req, res) => {
 });
 
 // 3. Create/Update Subscriber
-// POST https://flodeskendpoints.vercel.app/api/subscribers
+// POST https://flodesk.vercel.app/api/subscribers
 apiRouter.post('/subscribers', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -170,7 +170,7 @@ apiRouter.post('/subscribers', async (req, res) => {
 });
 
 // 4. Add to Segments
-// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+// POST https://flodesk.vercel.app/api/subscribers/{email}/segments
 apiRouter.post('/subscribers/:email/segments', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -217,7 +217,7 @@ apiRouter.post('/subscribers/:email/segments', async (req, res) => {
 });
 
 // 5. Remove from Segment
-// DELETE https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+// DELETE https://flodesk.vercel.app/api/subscribers/{email}/segments
 apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -274,7 +274,7 @@ apiRouter.delete('/subscribers/:email/segments', async (req, res) => {
 });
 
 // 6. Unsubscribe from All
-// POST https://flodeskendpoints.vercel.app/api/subscribers/{email}/unsubscribe
+// POST https://flodesk.vercel.app/api/subscribers/{email}/unsubscribe
 apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -303,7 +303,7 @@ apiRouter.post('/subscribers/:email/unsubscribe', async (req, res) => {
 });
 
 // Update subscriber segments
-// PATCH https://flodeskendpoints.vercel.app/api/subscribers/{email}/segments
+// PATCH https://flodesk.vercel.app/api/subscribers/{email}/segments
 apiRouter.patch('/subscribers/:email/segments', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -351,8 +351,8 @@ apiRouter.patch('/subscribers/:email/segments', async (req, res) => {
 
 // Segment Endpoints
 // 1. Get All Segments or Specific Segment by Email
-// GET https://flodeskendpoints.vercel.app/api/segments
-// GET https://flodeskendpoints.vercel.app/api/segments?id=email@example.com
+// GET https://flodesk.vercel.app/api/segments
+// GET https://flodesk.vercel.app/api/segments?id=email@example.com
 apiRouter.get('/segments', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
@@ -397,7 +397,7 @@ apiRouter.get('/segments', async (req, res) => {
 });
 
 // Get Custom Fields
-// GET https://flodeskendpoints.vercel.app/api/custom-fields
+// GET https://flodesk.vercel.app/api/custom-fields
 apiRouter.get('/custom-fields', async (req, res) => {
   try {
     const apiKey = extractApiKey(req);
