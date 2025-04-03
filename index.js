@@ -8,9 +8,7 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: [
-    /\.gohighlevel\.com$/,
-    /\.highLevel\.ai$/,
-    /\.highl\.com$/,
+    'https://flodesk.vercel.app',
     /\.vercel\.app$/,
     'http://localhost:3000'
   ],
