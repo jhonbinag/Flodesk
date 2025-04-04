@@ -142,7 +142,7 @@ export const subscribersService = {
 
       return response;
     } catch (error) {
-      console.error('Error updating the segments:', error);
+      console.error('Error updating segments:', error);
       throw error;
     }
   },
@@ -195,54 +195,21 @@ export const subscribersService = {
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
   },
 
-  async removeFromSegment(apiKey, email, segments) {
+  async removeFromSegment(apiKey, email, segment_ids) {
     const client = createFlodeskClient(apiKey);
     try {
+      const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
+      
+      // DELETE request with body
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segments
+          segment_ids: segmentIdsArray
         }
       });
 
       return response;
     } catch (error) {
       console.error('Error removing segments:', error);
-      throw error;
-    }
-  },
-
-  async getCustomFields(apiKey) {
-    const client = createFlodeskClient(apiKey);
-    try {
-      // Get a subscriber to see available custom fields
-      const response = await client.get(ENDPOINTS.subscribers.base);
-      
-      let subscribers = [];
-      if (response.data?.data?.data) {
-        subscribers = response.data.data.data;
-      } else if (response.data?.data) {
-        subscribers = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        subscribers = response.data;
-      }
-
-      // Collect all unique custom field keys
-      const customFields = new Set();
-      subscribers.forEach(subscriber => {
-        if (subscriber.custom_fields) {
-          Object.keys(subscriber.custom_fields).forEach(key => customFields.add(key));
-        }
-      });
-
-      // Transform to required format
-      const options = Array.from(customFields).map(field => ({
-        key: field,
-        label: field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-      }));
-
-      return options;
-    } catch (error) {
-      console.error('Error getting custom fields:', error);
       throw error;
     }
   }

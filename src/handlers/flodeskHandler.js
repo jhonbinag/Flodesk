@@ -133,20 +133,6 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
           }
           break;
 
-        case 'getCustomFields':
-          try {
-            const customFields = await subscribersService.getCustomFields(apiKey);
-            return res.json({
-              options: customFields
-            });
-          } catch (error) {
-            console.error('Error in getCustomFields:', error);
-            return res.json({
-              options: []
-            });
-          }
-          break;
-
         default:
           return res.status(400).json({ 
             success: false, 

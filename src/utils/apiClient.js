@@ -8,15 +8,10 @@ export const createFlodeskClient = (apiKey) => {
 
   const cleanApiKey = apiKey.trim();
   
-  // Create Authorization header with Basic Authentication
-  // Flodesk uses the API key as the username with an empty password
-  const base64ApiKey = Buffer.from(`${cleanApiKey}:`).toString('base64');
-  const authHeader = `Basic ${base64ApiKey}`;
-  
   const client = axios.create({
     baseURL: FLODESK_API_BASE_URL,
     headers: {
-      'Authorization': authHeader,
+      'Authorization': cleanApiKey,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
