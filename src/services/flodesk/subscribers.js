@@ -195,15 +195,12 @@ export const subscribersService = {
     return client.post(`${ENDPOINTS.subscribers.base}/${subscriber.value}/unsubscribe`);
   },
 
-  async removeFromSegment(apiKey, email, segment_ids) {
+  async removeFromSegment(apiKey, email, segments) {
     const client = createFlodeskClient(apiKey);
     try {
-      const segmentIdsArray = Array.isArray(segment_ids) ? segment_ids : [segment_ids];
-      
-      // DELETE request with body
       const response = await client.delete(`${ENDPOINTS.subscribers.base}/${email}/segments`, {
         data: {
-          segment_ids: segmentIdsArray
+          segment_ids: segments
         }
       });
 
