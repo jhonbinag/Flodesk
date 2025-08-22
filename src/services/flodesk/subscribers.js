@@ -44,7 +44,12 @@ export const subscribersService = {
     } catch (error) {
       logger.apiError('fetchSubscribers', error);
       
-      // Return empty array on error
+      // If it's an authentication error, throw it so it can be handled properly
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Invalid API key or insufficient permissions');
+      }
+      
+      // For other errors, return empty array
       return [];
     }
   },

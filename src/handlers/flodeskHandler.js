@@ -60,7 +60,12 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
             const subscribers = await subscribersService.getAllSubscribers(sanitizedApiKey, payload);
             return sendResponse(res, createOptionsResponse(subscribers));
           } catch (error) {
-          logger.apiError('getAllSubscribers', error);
+            logger.apiError('getAllSubscribers', error);
+            // If it's an authentication error, return proper error response
+            if (error.message.includes('Invalid API key') || error.message.includes('insufficient permissions')) {
+              return sendResponse(res, createErrorResponse('Invalid API key or insufficient permissions', null, 401));
+            }
+            // For other errors, return empty options
             return sendResponse(res, createOptionsResponse([]));
           }
           break;
