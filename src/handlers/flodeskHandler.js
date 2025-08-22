@@ -6,20 +6,25 @@ import { logger } from '../utils/logger.js';
 
 export const handleFlodeskAction = async (req, res, customBody = null) => {
   try {
-    const { action, apiKey, payload } = customBody || req.body;
+    // Extract parameters from customBody (for route handlers) or req.body (for direct calls)
+    const bodyData = customBody || req.body || {};
+    const { action, payload } = bodyData;
+    
+    // Get API key from customBody, req.body, or headers
+    const apiKey = bodyData.apiKey || req.headers.authorization;
     
     // Validate required fields
-  if (!action) {
-    return sendResponse(res, createErrorResponse('Action is required', null, 400));
-  }
-  
-  const apiKeyValidation = validateApiKey(apiKey);
-  if (!apiKeyValidation.isValid) {
-    return sendResponse(res, createErrorResponse(apiKeyValidation.message, null, 400));
-  }
-  
-  // Use sanitized API key
-  const sanitizedApiKey = apiKeyValidation.sanitized;
+    if (!action) {
+      return sendResponse(res, createErrorResponse('Action is required', null, 400));
+    }
+    
+    const apiKeyValidation = validateApiKey(apiKey);
+    if (!apiKeyValidation.isValid) {
+      return sendResponse(res, createErrorResponse(apiKeyValidation.message, null, 400));
+    }
+    
+    // Use sanitized API key
+    const sanitizedApiKey = apiKeyValidation.sanitized;
 
     let result;
     
