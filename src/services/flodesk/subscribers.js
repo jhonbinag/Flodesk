@@ -1,5 +1,6 @@
 import { ENDPOINTS } from '../../config/constants.js';
 import { createFlodeskClient } from '../../utils/apiClient.js';
+import { logger } from '../../utils/logger.js';
 import { segmentsService } from './segments.js';
 
 export const subscribersService = {
@@ -9,7 +10,10 @@ export const subscribersService = {
       const response = await client.get(ENDPOINTS.subscribers.base);
       
       // Add logging to debug the response
-      console.log('Raw Flodesk Response:', response.data);
+      logger.debug('Subscribers API response', {
+        subscriberCount: response.data?.data?.length || 0,
+        hasNextPage: !!response.data?.meta?.next_page_url
+      });
 
       // Get subscribers array from response
       let subscribers = [];
@@ -38,11 +42,7 @@ export const subscribersService = {
       // Return just the options array
       return options;
     } catch (error) {
-      console.error('Error getting subscribers:', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+      logger.apiError('fetchSubscribers', error);
       
       // Return empty array on error
       return [];
@@ -54,7 +54,10 @@ export const subscribersService = {
     try {
       // Get subscriber details
       const response = await client.get(`${ENDPOINTS.subscribers.base}/${email}`);
-      console.log('Raw Subscriber Response:', response.data);
+      logger.debug('Subscriber retrieved', {
+        email: email,
+        found: !!response.data
+      });
       const subscriber = response.data;
 
       // Check if subscriber is inactive/unsubscribed
@@ -120,7 +123,7 @@ export const subscribersService = {
         created_at: subscriber.created_at || null
       };
     } catch (error) {
-      console.error('Error getting subscriber:', error);
+      logger.apiError('getSubscriber', error, { email });
       throw error;
     }
   },
@@ -142,7 +145,7 @@ export const subscribersService = {
 
       return response;
     } catch (error) {
-      console.error('Error updating segments:', error);
+      logger.apiError('updateSubscriberSegments', error);
       throw error;
     }
   },
@@ -206,8 +209,8 @@ export const subscribersService = {
 
       return response;
     } catch (error) {
-      console.error('Error removing segments:', error);
+      logger.apiError('removeFromSegment', error);
       throw error;
     }
   }
-}; 
+};

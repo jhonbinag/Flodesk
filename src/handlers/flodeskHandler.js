@@ -1,171 +1,175 @@
 import { subscribersService } from '../services/flodesk/subscribers.js';
 import { segmentsService } from '../services/flodesk/segments.js';
+import { createSuccessResponse, createErrorResponse, createOptionsResponse, sendResponse } from '../utils/responseHelper.js';
+import { validateEmail, validateApiKey, validateSegmentIds, validateSubscriberData } from '../utils/validation.js';
+import { logger } from '../utils/logger.js';
 
 export const handleFlodeskAction = async (req, res, customBody = null) => {
   try {
     const { action, apiKey, payload } = customBody || req.body;
     
     // Validate required fields
-    if (!action || !apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Action and API Key are required'
-      });
-    }
+  if (!action) {
+    return sendResponse(res, createErrorResponse('Action is required', null, 400));
+  }
+  
+  const apiKeyValidation = validateApiKey(apiKey);
+  if (!apiKeyValidation.isValid) {
+    return sendResponse(res, createErrorResponse(apiKeyValidation.message, null, 400));
+  }
+  
+  // Use sanitized API key
+  const sanitizedApiKey = apiKeyValidation.sanitized;
 
     let result;
     
     try {
       switch (action) {
         case 'getAllSegments':
-          console.log('Getting all segments...');
+          logger.info('Getting all segments');
           try {
-            const segments = await segmentsService.getAllSegments(apiKey);
-            return res.json({
-              options: segments
-            });
+            const segments = await segmentsService.getAllSegments(sanitizedApiKey);
+            return sendResponse(res, createOptionsResponse(segments));
           } catch (error) {
-            console.error('Error in getAllSegments:', error);
-            return res.status(error.response?.status || 500).json({
-              options: [],
-              error: error.message
-            });
+          logger.apiError('getAllSegments', error);
+            return sendResponse(res, createErrorResponse(
+        error.message,
+        error.response?.data,
+        error.response?.status || 500
+      ));
           }
           break;
           
         case 'createOrUpdateSubscriber':
-          console.log('Creating/updating subscriber...');
-          if (!payload?.email) {
-            return res.status(400).json({
-              success: false,
-              message: 'Email is required for subscriber creation/update'
-            });
-          }
-          result = await subscribersService.createOrUpdate(apiKey, payload);
+          logger.info('Creating/updating subscriber');
+          const subscriberValidation = validateSubscriberData(payload);
+           if (!subscriberValidation.isValid) {
+             return sendResponse(res, createErrorResponse(subscriberValidation.message, null, 400));
+           }
+           result = await subscribersService.createOrUpdate(sanitizedApiKey, subscriberValidation.sanitized);
           break;
           
         // Subscriber actions
         case 'getAllSubscribers':
           try {
-            const subscribers = await subscribersService.getAllSubscribers(apiKey, payload);
-            return res.json({
-              options: subscribers
-            });
+            const subscribers = await subscribersService.getAllSubscribers(sanitizedApiKey, payload);
+            return sendResponse(res, createOptionsResponse(subscribers));
           } catch (error) {
-            console.error('Error in getAllSubscribers:', error);
-            return res.json({
-              options: []
-            });
+          logger.apiError('getAllSubscribers', error);
+            return sendResponse(res, createOptionsResponse([]));
           }
           break;
         case 'getSubscriber':
-          console.log('Getting subscriber by email...');
-          if (!payload?.email) {
-            return res.status(400).json({
-              success: false,
-              message: 'Email is required to get subscriber'
-            });
-          }
+          logger.info('Getting subscriber by email');
+          const emailValidation = validateEmail(payload.email);
+           if (!emailValidation.isValid) {
+             return sendResponse(res, createErrorResponse(emailValidation.message, null, 400));
+           }
           try {
             const result = await subscribersService.getSubscriber(
-              apiKey, 
-              payload.email,
+              sanitizedApiKey, 
+              emailValidation.sanitized,
               payload.segmentsOnly
             );
-            return res.json(result);
+            return sendResponse(res, createSuccessResponse(result));
           } catch (error) {
             if (error.response?.status === 404) {
-              return res.status(404).json({
-                success: false,
-                message: error.response.data.message,
-                error: error.response.data
-              });
+              return sendResponse(res, createErrorResponse(
+               error.response.data.message,
+               error.response.data,
+               404
+             ));
             }
             throw error;
           }
           break;
         case 'removeFromSegment':
-          if (!payload.segment_ids) {
-            return res.status(400).json({
-              success: false,
-              message: 'segment_ids array is required'
-            });
+          const segmentValidation = validateSegmentIds(payload.segment_ids);
+          if (!segmentValidation.isValid) {
+            return sendResponse(res, createErrorResponse(segmentValidation.message, null, 400));
           }
+          
+          const emailValidationRemove = validateEmail(payload.email);
+          if (!emailValidationRemove.isValid) {
+            return sendResponse(res, createErrorResponse(emailValidationRemove.message, null, 400));
+          }
+          
           result = await subscribersService.removeFromSegment(
-            apiKey, 
-            payload.email,
-            payload.segment_ids
+            sanitizedApiKey, 
+            emailValidationRemove.sanitized,
+            segmentValidation.sanitized
           );
           break;
         case 'addToSegments':
+          const segmentValidationAdd = validateSegmentIds(payload.segmentIds);
+          if (!segmentValidationAdd.isValid) {
+            return sendResponse(res, createErrorResponse(segmentValidationAdd.message, null, 400));
+          }
+          
+          const emailValidationAdd = validateEmail(payload.email);
+          if (!emailValidationAdd.isValid) {
+            return sendResponse(res, createErrorResponse(emailValidationAdd.message, null, 400));
+          }
+          
           result = await subscribersService.addToSegments(
-            apiKey, 
-            payload.email,
-            payload.segmentIds
+            sanitizedApiKey, 
+            emailValidationAdd.sanitized,
+            segmentValidationAdd.sanitized
           );
           break;
         case 'unsubscribeFromAll':
-          result = await subscribersService.unsubscribeFromAll(apiKey, payload.email);
+          const emailValidationUnsub = validateEmail(payload.email);
+          if (!emailValidationUnsub.isValid) {
+            return sendResponse(res, createErrorResponse(emailValidationUnsub.message, null, 400));
+          }
+          
+          result = await subscribersService.unsubscribeFromAll(sanitizedApiKey, emailValidationUnsub.sanitized);
           break;
 
         // Segment actions
         case 'getSegment':
-          console.log('Getting specific segment...');
+          logger.info('Getting specific segment');
           if (!payload?.id) {
-            return res.status(400).json({
-              success: false,
-              message: 'Email is required'
-            });
+            return sendResponse(res, createErrorResponse('Segment ID is required', null, 400));
           }
           try {
-            const result = await segmentsService.getSegment(apiKey, payload.id);
-            return res.json({
-              options: result
-            });
+            const result = await segmentsService.getSegment(sanitizedApiKey, payload.id);
+            return sendResponse(res, createOptionsResponse(result));
           } catch (error) {
             if (error.response?.status === 404) {
-              return res.status(404).json({
-                options: [],
-                error: error.response.data.message
-              });
+              return sendResponse(res, createErrorResponse(
+                error.response.data.message,
+                error.response.data,
+                404
+              ));
             }
             throw error;
           }
           break;
 
         default:
-          return res.status(400).json({ 
-            success: false, 
-            message: `Invalid action specified: ${action}` 
-          });
+          return sendResponse(res, createErrorResponse(`Invalid action specified: ${action}`, null, 400));
       }
 
-      return res.json({
-        success: true,
-        data: result?.data
-      });
+      return sendResponse(res, createSuccessResponse(result?.data));
 
     } catch (apiError) {
       if (apiError.response?.status === 401) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid Flodesk API key'
-        });
+        return sendResponse(res, createErrorResponse('Invalid Flodesk API key', null, 401));
       }
       throw apiError;
     }
 
   } catch (error) {
-    console.error('Request Error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
+      logger.apiError('handleFlodeskAction', error, {
+        action,
+        hasPayload: !!payload
+      });
     
-    return res.status(error.response?.status || 500).json({
-      success: false,
-      message: error.response?.data?.message || error.message,
-      error: error.response?.data || 'An error occurred'
-    });
+    return sendResponse(res, createErrorResponse(
+      error.response?.data?.message || error.message,
+      error.response?.data || 'An error occurred',
+      error.response?.status || 500
+    ));
   }
-}; 
+};

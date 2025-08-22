@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from './logger.js';
 import { FLODESK_API_BASE_URL } from '../config/constants.js';
 
 export const createFlodeskClient = (apiKey) => {
@@ -11,7 +12,7 @@ export const createFlodeskClient = (apiKey) => {
   const client = axios.create({
     baseURL: FLODESK_API_BASE_URL,
     headers: {
-      'Authorization': cleanApiKey,
+      'Authorization': `Basic ${cleanApiKey}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
@@ -20,28 +21,31 @@ export const createFlodeskClient = (apiKey) => {
 
   // Add request logging
   client.interceptors.request.use(request => {
-    console.log('Making request to:', request.baseURL + request.url);
+    logger.debug('Making API request', {
+      url: request.baseURL + request.url,
+      method: request.method
+    });
     return request;
   });
 
   // Add response logging
   client.interceptors.response.use(
     response => {
-      console.log('API Response:', {
+      logger.debug('API response received', { 
+        url: response.config.url,
         status: response.status,
-        data: response.data
+        dataKeys: Object.keys(response.data || {})
       });
       return response;
     },
     error => {
-      console.error('API Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
+      logger.apiError('API request failed', error, {
+        url: error.config?.url,
+        method: error.config?.method
       });
       throw error;
     }
   );
 
   return client;
-}; 
+};

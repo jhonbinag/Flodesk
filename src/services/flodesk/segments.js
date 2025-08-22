@@ -1,5 +1,6 @@
 import { ENDPOINTS } from '../../config/constants.js';
 import { createFlodeskClient } from '../../utils/apiClient.js';
+import { logger } from '../../utils/logger.js';
 
 export const segmentsService = {
   async getAllSegments(apiKey) {
@@ -28,7 +29,7 @@ export const segmentsService = {
 
       return segmentOptions;
     } catch (error) {
-      console.error('Error getting segments:', error.response?.data || error.message);
+      logger.apiError('getAllSegments', error);
       throw error;
     }
   },
@@ -72,7 +73,10 @@ export const segmentsService = {
       } else {
         // Handle email case (existing code)
         const subscriberResponse = await client.get(`${ENDPOINTS.subscribers.base}/${id}`);
-        console.log('Subscriber Response:', JSON.stringify(subscriberResponse.data, null, 2));
+        logger.debug('Segment retrieved', {
+          segmentId: id,
+          found: !!subscriberResponse.data
+        });
         
         const subscriber = subscriberResponse.data;
         if (!subscriber.segments || subscriber.segments.length === 0) {
@@ -109,7 +113,7 @@ export const segmentsService = {
         return subscriberSegments;
       }
     } catch (error) {
-      console.error('Error getting segment:', error.response?.data || error.message);
+      logger.apiError('getSegment', error, { segmentId: id });
       throw error;
     }
   },
@@ -118,4 +122,4 @@ export const segmentsService = {
     const client = createFlodeskClient(apiKey);
     return client.get(`${ENDPOINTS.segments.base}/${segmentId}/subscribers`);
   }
-}; 
+};
