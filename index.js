@@ -15,7 +15,33 @@ const apiRouter = express.Router();
 // Health check endpoint
 // Updated: Force deployment with latest API key validation fixes
 apiRouter.get('/health', (_, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), version: '2.0' });
+});
+
+// Test endpoint to verify deployment
+apiRouter.get('/test-subscribers', async (req, res) => {
+  try {
+    const apiKey = req.headers.authorization;
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API key is required in Authorization header'
+      });
+    }
+    
+    await handleFlodeskAction(req, res, {
+      action: 'getAllSubscribers',
+      apiKey,
+      payload: {}
+    });
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
 });
 
 // Subscriber Endpoints
