@@ -13,8 +13,9 @@ app.use(express.json());
 const apiRouter = express.Router();
 
 // Health check endpoint
+// Updated: Force deployment with latest API key validation fixes
 apiRouter.get('/health', (_, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Subscriber Endpoints
