@@ -1,7 +1,7 @@
 import { subscribersService } from '../services/flodesk/subscribers.js';
 import { segmentsService } from '../services/flodesk/segments.js';
 import { createSuccessResponse, createErrorResponse, createOptionsResponse, sendResponse } from '../utils/responseHelper.js';
-import { validateEmail, validateApiKey, validateSegmentIds, validateSubscriberData } from '../utils/validation.js';
+import { validateEmail, validateApiKey, validateSubscriberData, validateSegmentIds, extractApiKeyFromAuth } from '../utils/validation.js';
 import { logger } from '../utils/logger.js';
 
 export const handleFlodeskAction = async (req, res, customBody = null) => {
@@ -11,7 +11,8 @@ export const handleFlodeskAction = async (req, res, customBody = null) => {
     const { action, payload } = bodyData;
     
     // Get API key from customBody, req.body, or headers
-    const apiKey = bodyData.apiKey || req.headers.authorization;
+    const rawApiKey = bodyData.apiKey || req.headers.authorization;
+    const apiKey = bodyData.apiKey ? rawApiKey : extractApiKeyFromAuth(rawApiKey);
     
     // Validate required fields
     if (!action) {

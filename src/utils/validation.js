@@ -82,6 +82,32 @@ export const validateApiKey = (apiKey) => {
 };
 
 /**
+ * Extracts API key from Authorization header
+ * @param {string} authHeader - Authorization header value
+ * @returns {string|null} Extracted API key or null if invalid format
+ */
+export const extractApiKeyFromAuth = (authHeader) => {
+  if (!authHeader || typeof authHeader !== 'string') {
+    return null;
+  }
+  
+  const trimmed = authHeader.trim();
+  
+  // Handle Basic authentication
+  if (trimmed.toLowerCase().startsWith('basic ')) {
+    return trimmed.substring(6).trim();
+  }
+  
+  // Handle Bearer authentication
+  if (trimmed.toLowerCase().startsWith('bearer ')) {
+    return trimmed.substring(7).trim();
+  }
+  
+  // If no prefix, assume it's the raw API key
+  return trimmed;
+};
+
+/**
  * Validates segment IDs array
  * @param {array} segmentIds - Array of segment IDs to validate
  * @returns {object} Validation result with isValid and message
